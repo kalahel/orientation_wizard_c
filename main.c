@@ -30,7 +30,7 @@ struct Obstacle{
 }typedef Obstacle;
 
 struct Environment{
-    Obstacle * obstacles;
+    Obstacle* obstacles;
     PointGPS destination;
 }typedef Environment;
 
@@ -143,9 +143,13 @@ VectorGPS computeDriverVectorFromEnvironement(){
 int main() {
     PointGPS pointGps1 = createPoint(49.202538, 6.918930);
     PointGPS pointGps2 = createPoint(49.202650, 6.925839);
+    PointGPS destination = createPoint(49.202660, 6.925849);
     Obstacle obstacle1 = createObstacle(1, 10, pointGps1 );
     Obstacle obstacle2 = createObstacle(2, 30, pointGps2 );
     Obstacle* obstacles[2];
     obstacles[0] = &obstacle1;
     obstacles[1] = &obstacle2;
+    // environement is global
+    environment = createEnvironment(destination, obstacles );
+    printf("%d\n",environment.obstacles[1].id);
 }
