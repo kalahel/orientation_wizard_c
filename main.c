@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
+
+#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
 // longitude <==> x
 // latitude <==> y
@@ -30,7 +33,7 @@ struct Obstacle{
 }typedef Obstacle;
 
 struct Environment{
-    Obstacle* obstacles;
+    Obstacle **obstacles;
     PointGPS destination;
 }typedef Environment;
 
@@ -127,10 +130,11 @@ Obstacle createObstacle(int id, double radius, PointGPS position){
     return obstacle;
 }
 
-Environment createEnvironment(PointGPS destination, Obstacle* obstacles){
+Environment createEnvironment(PointGPS destination, Obstacle *obstacles[]){
     Environment environment;
     environment.destination = destination;
     environment.obstacles = obstacles;
+    return environment;
 }
 
 
@@ -149,7 +153,7 @@ int main() {
     Obstacle* obstacles[2];
     obstacles[0] = &obstacle1;
     obstacles[1] = &obstacle2;
-    // environement is global
-    environment = createEnvironment(destination, obstacles );
-    printf("%d\n",environment.obstacles[1].id);
+
+    environment= createEnvironment(destination, obstacles);
+    printf("%lf\n", environment.obstacles[1]->position.latitude);
 }
