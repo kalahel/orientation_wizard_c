@@ -2,6 +2,7 @@
 #include <math.h>
 
 #define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
+#define ORTHODROMIC_DIST(x1, y1, x2, y2)    (60*acos(sin))
 
 // longitude <==> x
 // latitude <==> y
