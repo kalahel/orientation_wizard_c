@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
+
 // longitude <==> x
 // latitude <==> y
 struct PointGPS {
