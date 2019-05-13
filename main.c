@@ -131,8 +131,18 @@ Environment createEnvironment(PointGPS destination, Obstacle* obstacles){
     Environment environment;
     environment.destination = destination;
     environment.obstacles = obstacles;
+    return environment;
 }
 
+void printObstacle(Obstacle *obstacle){
+    printf("Id: %d, Position: (%f, %f), Radius: %f\n", obstacle->id, obstacle->position.longitude, obstacle->position.latitude, obstacle->radius);
+}
+
+void printEnvironment(Environment environment){
+    printf("Destination: (%f, %f)\nList of obstacles:\n", environment.destination.longitude, environment.destination.latitude);
+    printObstacle(&environment.obstacles[0]);
+    printObstacle(&environment.obstacles[1]);
+}
 
 
 VectorGPS computeDriverVectorFromEnvironement(){
@@ -150,6 +160,8 @@ int main() {
     obstacles[0] = &obstacle1;
     obstacles[1] = &obstacle2;
     // environement is global
-    environment = createEnvironment(destination, obstacles );
+    environment = createEnvironment(destination, *obstacles );
+    printf("%d\n",environment.obstacles->id);
     printf("%d\n",environment.obstacles[1].id);
+    printEnvironment(environment);
 }
