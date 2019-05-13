@@ -151,6 +151,7 @@ VectorGPS computeDriverVectorFromEnvironement(){
 
 }
 
+//Random shit ?
 
 int main() {
     PointGPS pointGps1 = createPoint(49.202538, 6.918930);
