@@ -38,6 +38,7 @@ struct Environment{
 }typedef Environment;
 
 Environment environment;
+PointGPS position;
 
 PointGPS createPoint(double longitude, double latitude){
     PointGPS point;
@@ -147,9 +148,36 @@ void printEnvironment(Environment environment){
     printObstacle(&environment.obstacles[1]);
 }
 
-double computeRepulsiveForceFromObstacle(Obstacle obstacle){
+//FIXME : error with the distance computation
+double computeOrthodormicDistance( PointGPS pointGps1, PointGPS pointGps2){
+    return  1852 * (60*acos(sin(pointGps1.latitude)*sin(pointGps2.latitude) + cos(pointGps1.latitude)*cos(pointGps2.latitude)*cos(pointGps2.longitude - pointGps1.longitude)));
+}
+
+double getDistanceBetweenPoints(PointGPS pointGps1, PointGPS pointGps2){
+    return computeOrthodormicDistance(pointGps1, pointGps2);
+}
+
+VectorPOLAR computeRepulsiveForceFromObstacle(Obstacle obstacle, VectorPOLAR attraction_vector){
     double distance = ORTHODROMIC_DIST(obstacle.position.latitude, obstacle.position.longitude, environment.destination.latitude, environment.destination.longitude);
-    return distance;
+    VectorPOLAR repulsionVector = createPolarVectorFromPointGpsAPointGpsB(obstacle.position, position);
+    if( distance < obstacle.radius + 15 ){
+        repulsionVector.d_radius = -2 * attraction_vector.d_radius;
+    }else if( distance < obstacle.radius + 30 ){
+        repulsionVector.d_radius = -1.5 * attraction_vector.d_radius;
+    }else if( distance < obstacle.radius + 50 ){
+        repulsionVector.d_radius = -attraction_vector.d_radius;
+    }else if( distance < obstacle.radius + 70 ){
+        repulsionVector.d_radius = -0.8 * attraction_vector.d_radius;
+    }else if( distance < obstacle.radius + 100 ){
+        repulsionVector.d_radius = -0.6 * attraction_vector.d_radius;
+    }else if( distance < obstacle.radius + 150 ){
+        repulsionVector.d_radius = -0.4 * attraction_vector.d_radius;
+    }else if( distance < obstacle.radius + 250 ){
+        repulsionVector.d_radius = -0.2 * attraction_vector.d_radius;
+    }else if( distance < obstacle.radius + 500 ) {
+        repulsionVector.d_radius = -0.1 * attraction_vector.d_radius;
+    }else repulsionVector.d_radius = 0;
+    return repulsionVector;
 }
 
 VectorGPS computeDriverVectorFromEnvironement(){
@@ -159,9 +187,9 @@ VectorGPS computeDriverVectorFromEnvironement(){
 //Random shit ?
 
 int main() {
-    PointGPS pointGps1 = createPoint(46.985442, 2.402888);
+    PointGPS pointGps1 = createPoint(48.851359, 2.710978);
     PointGPS pointGps2 = createPoint(49.202650, 6.925839);
-            PointGPS destination = createPoint(48.825928, 2.400005);
+    PointGPS destination = createPoint(48.851521, 2.697138);
     Obstacle obstacle1 = createObstacle(1, 10, pointGps1 );
     Obstacle obstacle2 = createObstacle(2, 30, pointGps2 );
     Obstacle obstacles[2];
@@ -172,6 +200,5 @@ int main() {
     //printf("%d\n",environment.obstacles->id);
     printf("%d\n",environment.obstacles[1].id);
     printEnvironment(environment);
-    double distance = computeRepulsiveForceFromObstacle(obstacle1);
-    printf("Distance : %lf\n",distance);
+    printf("Distance : %lf\n",computeOrthodormicDistance(pointGps1, destination));
 }
