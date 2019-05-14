@@ -2,7 +2,7 @@
 #include <math.h>
 
 #define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
-#define ORTHODROMIC_DIST(x1, y1, x2, y2)    (60*acos(sin))
+#define ORTHODROMIC_DIST(lat1, long1, lat2, long2)    1852 * (60*acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(long2 - long1)))
 
 // longitude <==> x
 // latitude <==> y
@@ -147,6 +147,10 @@ void printEnvironment(Environment environment){
     printObstacle(&environment.obstacles[1]);
 }
 
+double computeRepulsiveForceFromObstacle(Obstacle obstacle){
+    double distance = ORTHODROMIC_DIST(obstacle.position.latitude, obstacle.position.longitude, environment.destination.latitude, environment.destination.longitude);
+    return distance;
+}
 
 VectorGPS computeDriverVectorFromEnvironement(){
 
@@ -155,17 +159,19 @@ VectorGPS computeDriverVectorFromEnvironement(){
 //Random shit ?
 
 int main() {
-    PointGPS pointGps1 = createPoint(49.202538, 6.918930);
+    PointGPS pointGps1 = createPoint(46.985442, 2.402888);
     PointGPS pointGps2 = createPoint(49.202650, 6.925839);
-    PointGPS destination = createPoint(49.202660, 6.925849);
+            PointGPS destination = createPoint(48.825928, 2.400005);
     Obstacle obstacle1 = createObstacle(1, 10, pointGps1 );
     Obstacle obstacle2 = createObstacle(2, 30, pointGps2 );
-    Obstacle* obstacles[2];
-    obstacles[0] = &obstacle1;
-    obstacles[1] = &obstacle2;
+    Obstacle obstacles[2];
+    obstacles[0] = obstacle1;
+    obstacles[1] = obstacle2;
     // environement is global
-    environment = createEnvironment(destination, *obstacles );
-    printf("%d\n",environment.obstacles->id);
+    environment = createEnvironment(destination, obstacles );
+    //printf("%d\n",environment.obstacles->id);
     printf("%d\n",environment.obstacles[1].id);
     printEnvironment(environment);
+    double distance = computeRepulsiveForceFromObstacle(obstacle1);
+    printf("Distance : %lf\n",distance);
 }
