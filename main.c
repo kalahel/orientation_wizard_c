@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <math.h>
 
-#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
-#define ORTHODROMIC_DIST(lat1, long1, lat2, long2)    1852 * (60*acos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(long2 - long1)))
+#define PI                  3.14159265359
+#define NELEMS(x)           (sizeof(x) / sizeof((x)[0]))
+#define DEG_2_RAD(x)        (x*PI)/180
+#define ORTHODROMIC_DIST(lat1, long1, lat2, long2)    1852 * (60*acos(sin(DEG_2_RAD(lat1))*sin(DEG_2_RAD(lat2)) + cos(DEG_2_RAD(lat1))*cos(DEG_2_RAD(lat2))*cos(DEG_2_RAD(long2) - DEG_2_RAD(long1))))
 
 // longitude <==> x
 // latitude <==> y
@@ -74,6 +76,14 @@ VectorGPS createGpsVectorFromPointGpsAPointGpsB(PointGPS pointA, PointGPS pointB
 
 VectorGPS sumOfGpsVectorsAB(VectorGPS vectorA, VectorGPS vectorB){
     return createVectorGPS(vectorA.d_long + vectorB.d_long, vectorA.d_lat + vectorB.d_lat);
+}
+
+double rad_2d_deg(double radians){
+    return radians * ( 180 / M_PI);
+}
+
+double deg_2_rad(double deg){
+    return deg * ( M_PI / 180);
 }
 
 VectorPOLAR createPolarVectorFromPointGpsAPointGpsB(PointGPS pointA, PointGPS pointB){
@@ -150,14 +160,40 @@ void printEnvironment(Environment environment){
 
 //FIXME : error with the distance computation
 double computeOrthodormicDistance( PointGPS pointGps1, PointGPS pointGps2){
-    return  1852 * (60*acos(sin(pointGps1.latitude)*sin(pointGps2.latitude) + cos(pointGps1.latitude)*cos(pointGps2.latitude)*cos(pointGps2.longitude - pointGps1.longitude)));
+
+    double earthRadius = 6378137;
+    double rlat1 = deg_2_rad(pointGps1.latitude);
+    double rlat2 = deg_2_rad(pointGps2.latitude);
+    double rlong1 = deg_2_rad(pointGps1.longitude);
+    double rlong2 = deg_2_rad(pointGps2.longitude);
+
+    double dlong = (rlong2 - rlong1) / 2;
+    double dlat = ((rlat2 - rlat1) / 3);
+
+    double sub_calc = ( sin(dlat) * sin(dlat) + cos(rlat1) * cos(rlat2) * sin(dlong) * sin(dlong));
+
+    double d = 2 * atan2(sqrt(sub_calc), sqrt(1-sub_calc));
+
+    return (earthRadius * d);
+
+    /*return  1852 * (60*acos(
+            sin(deg_2_rad(pointGps1.latitude))
+            *sin(deg_2_rad(pointGps2.latitude))
+            +
+            cos(deg_2_rad(pointGps1.latitude))
+            *cos(deg_2_rad(pointGps2.latitude))
+            *cos(deg_2_rad(pointGps2.longitude) - deg_2_rad(pointGps1.longitude))));*/
+}
+
+double computeCarthesianDistance( PointGPS pointGps1, PointGPS pointGps2){
+    return sqrt(pow(pointGps2.latitude - pointGps1.latitude, 2) + pow((pointGps2.latitude - pointGps1.latitude)*(cos(pointGps2.latitude + pointGps1.latitude)/2), 2));
 }
 
 double getDistanceBetweenPoints(PointGPS pointGps1, PointGPS pointGps2){
     return computeOrthodormicDistance(pointGps1, pointGps2);
 }
 
-VectorPOLAR computeRepulsiveForceFromObstacle(Obstacle obstacle, VectorPOLAR attraction_vector){
+VectorGPS computeRepulsiveForceFromObstacle(Obstacle obstacle, VectorPOLAR attraction_vector){
     double distance = ORTHODROMIC_DIST(obstacle.position.latitude, obstacle.position.longitude, environment.destination.latitude, environment.destination.longitude);
     VectorPOLAR repulsionVector = createPolarVectorFromPointGpsAPointGpsB(obstacle.position, position);
     if( distance < obstacle.radius + 15 ){
@@ -177,19 +213,25 @@ VectorPOLAR computeRepulsiveForceFromObstacle(Obstacle obstacle, VectorPOLAR att
     }else if( distance < obstacle.radius + 500 ) {
         repulsionVector.d_radius = -0.1 * attraction_vector.d_radius;
     }else repulsionVector.d_radius = 0;
-    return repulsionVector;
+    return convertPolarVectorInGpsVector(repulsionVector);
 }
 
 VectorGPS computeDriverVectorFromEnvironement(){
-
+    int i;
+    VectorGPS attractionVectorGPS = createGpsVectorFromPointGpsAPointGpsB(position, environment.destination);
+    VectorPOLAR attractionVectorPOLAR = convertGpsVectorInPolarVector(attractionVectorGPS);
+    VectorGPS globalVector = attractionVectorGPS;
+    for(i = 0; i<NELEMS(environment.obstacles); i++){
+        globalVector = sumOfGpsVectorsAB(globalVector, computeRepulsiveForceFromObstacle(environment.obstacles[i], attractionVectorPOLAR));
+    }
+    return globalVector;
 }
 
-//Random shit ?
-
+// Convertir de dégrés en radians
 int main() {
-    PointGPS pointGps1 = createPoint(48.851359, 2.710978);
+    PointGPS pointGps1 = createPoint(48.787972, 1.584565);
     PointGPS pointGps2 = createPoint(49.202650, 6.925839);
-    PointGPS destination = createPoint(48.851521, 2.697138);
+    PointGPS destination = createPoint(48.721869, 1.491401);
     Obstacle obstacle1 = createObstacle(1, 10, pointGps1 );
     Obstacle obstacle2 = createObstacle(2, 30, pointGps2 );
     Obstacle obstacles[2];
@@ -200,5 +242,6 @@ int main() {
     //printf("%d\n",environment.obstacles->id);
     printf("%d\n",environment.obstacles[1].id);
     printEnvironment(environment);
-    printf("Distance : %lf\n",computeOrthodormicDistance(pointGps1, destination));
+    printf("Distance : %lf\n",getDistanceBetweenPoints(pointGps1, destination));
+    VectorGPS globalVect = computeDriverVectorFromEnvironement();
 }
