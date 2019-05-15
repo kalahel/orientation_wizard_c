@@ -221,7 +221,7 @@ VectorGPS computeDriverVectorFromEnvironement(){
     VectorGPS attractionVectorGPS = createGpsVectorFromPointGpsAPointGpsB(position, environment.destination);
     VectorPOLAR attractionVectorPOLAR = convertGpsVectorInPolarVector(attractionVectorGPS);
     VectorGPS globalVector = attractionVectorGPS;
-    for(i = 0; i<NELEMS(environment.obstacles); i++){
+    for(i = 0; i<2; i++){
         globalVector = sumOfGpsVectorsAB(globalVector, computeRepulsiveForceFromObstacle(environment.obstacles[i], attractionVectorPOLAR));
     }
     return globalVector;
@@ -243,5 +243,6 @@ int main() {
     printf("%d\n",environment.obstacles[1].id);
     printEnvironment(environment);
     printf("Distance : %lf\n",getDistanceBetweenPoints(pointGps1, destination));
+    position = createPoint(48.752066, 1.565245);
     VectorGPS globalVect = computeDriverVectorFromEnvironement();
 }
