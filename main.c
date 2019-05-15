@@ -37,6 +37,7 @@ struct Obstacle{
 struct Environment{
     Obstacle* obstacles;
     PointGPS destination;
+    int obstacles_counter;
 }typedef Environment;
 
 Environment environment;
@@ -141,10 +142,11 @@ Obstacle createObstacle(int id, double radius, PointGPS position){
     return obstacle;
 }
 
-Environment createEnvironment(PointGPS destination, Obstacle* obstacles){
+Environment createEnvironment(PointGPS destination, Obstacle* obstacles, int number_of_obstacles){
     Environment environment;
     environment.destination = destination;
     environment.obstacles = obstacles;
+    environment.obstacles_counter = number_of_obstacles;
     return environment;
 }
 
@@ -158,7 +160,6 @@ void printEnvironment(Environment environment){
     printObstacle(&environment.obstacles[1]);
 }
 
-//FIXME : error with the distance computation
 double computeOrthodormicDistance( PointGPS pointGps1, PointGPS pointGps2){
 
     double earthRadius = 6378137;
@@ -185,6 +186,7 @@ double computeOrthodormicDistance( PointGPS pointGps1, PointGPS pointGps2){
             *cos(deg_2_rad(pointGps2.longitude) - deg_2_rad(pointGps1.longitude))));*/
 }
 
+//FIXME : works like crap
 double computeCarthesianDistance( PointGPS pointGps1, PointGPS pointGps2){
     return sqrt(pow(pointGps2.latitude - pointGps1.latitude, 2) + pow((pointGps2.latitude - pointGps1.latitude)*(cos(pointGps2.latitude + pointGps1.latitude)/2), 2));
 }
@@ -221,13 +223,13 @@ VectorGPS computeDriverVectorFromEnvironement(){
     VectorGPS attractionVectorGPS = createGpsVectorFromPointGpsAPointGpsB(position, environment.destination);
     VectorPOLAR attractionVectorPOLAR = convertGpsVectorInPolarVector(attractionVectorGPS);
     VectorGPS globalVector = attractionVectorGPS;
-    for(i = 0; i<2; i++){
+    for(i = 0; i<environment.obstacles_counter; i++){
         globalVector = sumOfGpsVectorsAB(globalVector, computeRepulsiveForceFromObstacle(environment.obstacles[i], attractionVectorPOLAR));
     }
     return globalVector;
 }
 
-// Convertir de dégrés en radians
+
 int main() {
     PointGPS pointGps1 = createPoint(48.787972, 1.584565);
     PointGPS pointGps2 = createPoint(49.202650, 6.925839);
