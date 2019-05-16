@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <stdio.h>
+#include <fcntl.h>   /* File Control Definitions           */
+#include <termios.h> /* POSIX Terminal Control Definitions */
+#include <unistd.h>  /* UNIX Standard Definitions      */
+#include <errno.h>   /* ERROR Number Definitions           */
+#include <assert.h>
+
+
 #define PI                  3.14159265359
 #define NELEMS(x)           (sizeof(x) / sizeof((x)[0]))
 #define DEG_2_RAD(x)        (x*PI)/180
