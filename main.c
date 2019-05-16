@@ -229,6 +229,14 @@ VectorGPS computeDriverVectorFromEnvironement(){
     return globalVector;
 }
 
+VectorGPS computeVectorGPSFromDestination(){
+    return createGpsVectorFromPointGpsAPointGpsB(position, environment.destination);
+}
+
+VectorPOLAR computeVectorPOLARFromDestination(){
+    return convertGpsVectorInPolarVector(createGpsVectorFromPointGpsAPointGpsB(position, environment.destination));
+}
+
 
 int main() {
     PointGPS pointGps1 = createPoint(48.787972, 1.584565);
