@@ -3,10 +3,11 @@
 
 #include <stdio.h>
 #include <fcntl.h>   /* File Control Definitions           */
-#include <termios.h> /* POSIX Terminal Control Definitions */
 #include <unistd.h>  /* UNIX Standard Definitions      */
 #include <errno.h>   /* ERROR Number Definitions           */
 #include <assert.h>
+#include "serial_gps.h"
+
 
 
 #define PI                  3.14159265359
@@ -256,11 +257,15 @@ int main() {
     obstacles[0] = obstacle1;
     obstacles[1] = obstacle2;
     // environement is global
-    environment = createEnvironment(destination, obstacles );
+    environment = createEnvironment(destination, obstacles, 2);
     //printf("%d\n",environment.obstacles->id);
     printf("%d\n",environment.obstacles[1].id);
     printEnvironment(environment);
     printf("Distance : %lf\n",getDistanceBetweenPoints(pointGps1, destination));
     position = createPoint(48.752066, 1.565245);
     VectorGPS globalVect = computeDriverVectorFromEnvironement();
+    init_serial_read();
+    while(1){
+
+    }
 }

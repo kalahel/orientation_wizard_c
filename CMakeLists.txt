@@ -3,4 +3,4 @@ project(orientation_wizard_c C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(orientation_wizard_c main.c)
+add_executable(orientation_wizard_c main.c serial_gps.c serial_gps.h)
