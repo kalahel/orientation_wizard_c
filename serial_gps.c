@@ -130,6 +130,25 @@ void init_serial_read() {
     tcflush(file_descriptor, TCIFLUSH);   /* Discards old data in the rx buffer */
 }
 
+void print_gps_data(){
+    printf("tag : %s\n"
+           "utc_time : %s\n"
+           "latitude : %s\n"
+           "n_s_indicator : %s\n"
+           "longitude : %s\n"
+           "e_w_indicator : %s\n"
+           "pos_fix_indicator : %s\n"
+           "nb_sat_used : %s\n"
+           "hdop : %s\n"
+           "msl_altitude : %s\n"
+           "units : %s\n"
+           "geoid_separation : %s\n"
+           "checksum : %s\n\n\n",
+           gps_data.tag, gps_data.utc_time, gps_data.latitude, gps_data.n_s_indicator, gps_data.longitude,
+           gps_data.e_w_indicator, gps_data.pos_fix_indicator, gps_data.nb_sat_used, gps_data.hdop,
+           gps_data.msl_altitude, gps_data.units, gps_data.geoid_separation, gps_data.checksum);
+}
+
 void get_gps_data() {
     file_output = fdopen(file_descriptor, mode);
     //bytes_read = read(fd, &read_buffer, READ_BUFFER_SIZE -1); /* Read the data
@@ -158,24 +177,6 @@ void get_gps_data() {
         gps_data.units = splited_line[10];
         gps_data.geoid_separation = splited_line[11];
         gps_data.checksum = splited_line[15];
-
-
-        printf("tag : %s\n"
-               "utc_time : %s\n"
-               "latitude : %s\n"
-               "n_s_indicator : %s\n"
-               "longitude : %s\n"
-               "e_w_indicator : %s\n"
-               "pos_fix_indicator : %s\n"
-               "nb_sat_used : %s\n"
-               "hdop : %s\n"
-               "msl_altitude : %s\n"
-               "units : %s\n"
-               "geoid_separation : %s\n"
-               "checksum : %s\n\n\n",
-               gps_data.tag, gps_data.utc_time, gps_data.latitude, gps_data.n_s_indicator, gps_data.longitude,
-               gps_data.e_w_indicator, gps_data.pos_fix_indicator, gps_data.nb_sat_used, gps_data.hdop,
-               gps_data.msl_altitude, gps_data.units, gps_data.geoid_separation, gps_data.checksum);
     }
 }
 

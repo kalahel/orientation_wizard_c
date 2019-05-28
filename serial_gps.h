@@ -36,6 +36,9 @@ struct Gps_data {
 char **str_split(char *a_str, const char a_delim);
 _Bool starts_with(const char *string, const char *prefix);
 void init_serial_read();
+void print_gps_data();
 void get_gps_data();
+
+extern Gps_data gps_data;
 
 #endif //SERIAL_GPS_GPS
