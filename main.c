@@ -254,6 +254,11 @@ VectorPOLAR computeVectorPOLARFromDestination() {
     return convertGpsVectorInPolarVector(createGpsVectorFromPointGpsAPointGpsB(position, environment.destination));
 }
 
+void collectCurrentPosition(){
+    position.longitude = (atof(gps_data.longitude)/100)-0.123585;
+    position.latitude = (atof(gps_data.latitude)/100)+0.52485;
+}
+
 
 int main() {
 /*    PointGPS pointGps1 = createPoint(48.787972, 1.584565);
@@ -276,6 +281,8 @@ int main() {
     init_serial_read();
     FILE* log_file;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
     while (1) {
         get_gps_data();
         print_gps_data();
@@ -283,13 +290,14 @@ int main() {
             printf("\r\n\r\nAS TEXT \r\n Latitude : %s\r\n Longitude : %s\r\n",
                     gps_data.latitude,
                     gps_data.longitude);
-            position.longitude = atof(gps_data.longitude)/100;
-            position.latitude = atof(gps_data.latitude)/100;
+            collectCurrentPosition();
             printf("AS DOUBLE \r\n Latitude : %lf\r\n Longitude : %lf\r\n\r\n\r\n",
                     position.latitude,
                     position.longitude);
             vectPolarGlobal = createPolarVectorFromPointGpsAPointGpsB(position, destination);
             vectGPSGlobal = createGpsVectorFromPointGpsAPointGpsB(position, destination);
+            printf("\r\n vect polar = Radius : %lf , Angle : %lf", vectPolarGlobal.d_radius, vectPolarGlobal.d_angle);
+            printf("\r\n vect carth = Latitude : %lf , Longitude : %lf", vectGPSGlobal.d_lat, vectGPSGlobal.d_long);
             log_file = fopen("./log.txt", "a");
             fprintf(log_file, "Position = %lf,%lf \r\n Destination = %lf,%lf \r\n VectPOL : %lf,%lf \r\n VectGPS ; %lf,%lf \r\n",
                               position.latitude,
@@ -303,4 +311,5 @@ int main() {
                               );
         }else printf("No data yet");
     }
+#pragma clang diagnostic pop
 }
