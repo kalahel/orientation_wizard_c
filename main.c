@@ -105,7 +105,7 @@ VectorPOLAR createPolarVectorFromPointGpsAPointGpsB(PointGPS pointA, PointGPS po
     if (vectorGps.d_long >= 0) {
         if (vectorGps.d_lat >= 0) {
             // atan2 returns radians. To convert it in degrees we do the following :
-            angle = (180.0 / M_PI) * (atan2(vectorGps.d_long, vectorGps.d_lat));
+            angle = 90 - ((180.0 / M_PI) * (atan2(vectorGps.d_long, vectorGps.d_lat)));
         } else {
             angle = (180.0 / M_PI) * (atan2(-vectorGps.d_long, vectorGps.d_lat)) + 90;
         }
@@ -119,13 +119,18 @@ VectorPOLAR createPolarVectorFromPointGpsAPointGpsB(PointGPS pointA, PointGPS po
     return createVectorPOLAR(angle, radius);
 }
 
+VectorPOLAR createPolarVectorFromPointGpsAPointGpsBv2(PointGPS pointA, PointGPS pointB) {
+    VectorGPS vectorGps = createGpsVectorFromPointGpsAPointGpsB(pointA, pointB);
+    double angle = 2*atan(vectorGps.d_lat/(vectorGps.d_long+sqrt(pow(vectorGps.d_long, 2) + pow(vectorGps.d_lat, 2))));
+}
+
 VectorPOLAR convertGpsVectorInPolarVector(VectorGPS vectorGps) {
     double radius = sqrt(vectorGps.d_lat * vectorGps.d_lat + vectorGps.d_long * vectorGps.d_long);
     double angle = 0.0;
     if (vectorGps.d_long >= 0) {
         if (vectorGps.d_lat >= 0) {
             // atan2 returns radians. To convert it in degrees we do the following :
-            angle = (180.0 / M_PI) * (atan2(vectorGps.d_long, vectorGps.d_lat));
+            angle = 90-((180.0 / M_PI) * (atan2(vectorGps.d_long, vectorGps.d_lat)));
         } else {
             angle = (180.0 / M_PI) * (atan2(-vectorGps.d_long, vectorGps.d_lat)) + 90;
         }
@@ -166,6 +171,14 @@ void printObstacle(Obstacle *obstacle) {
            obstacle->position.latitude, obstacle->radius);
 }
 
+void printVectorPolar(VectorPOLAR vectorPolar){
+    printf("Vector polar - radius : %lf , angle %lf\r\n", vectorPolar.d_radius, vectorPolar.d_angle);
+}
+
+void printVectorGPS(VectorGPS vectorGps){
+    printf("Vector GPS - x : %lf , y : %lf\r\n", vectorGps.d_lat, vectorGps.d_long);
+}
+
 void printEnvironment(Environment environment) {
     printf("Destination: (%f, %f)\nList of obstacles:\n", environment.destination.longitude,
            environment.destination.latitude);
@@ -182,7 +195,7 @@ double computeOrthodormicDistance(PointGPS pointGps1, PointGPS pointGps2) {
     double rlong2 = deg_2_rad(pointGps2.longitude);
 
     double dlong = (rlong2 - rlong1) / 2;
-    double dlat = ((rlat2 - rlat1) / 3);
+    double dlat = ((rlat2 - rlat1) / 2);
 
     double sub_calc = (sin(dlat) * sin(dlat) + cos(rlat1) * cos(rlat2) * sin(dlong) * sin(dlong));
 
@@ -210,10 +223,14 @@ double getDistanceBetweenPoints(PointGPS pointGps1, PointGPS pointGps2) {
 }
 
 VectorGPS computeRepulsiveForceFromObstacle(Obstacle obstacle, VectorPOLAR attraction_vector) {
-    double distance =
-            ORTHODROMIC_DIST(obstacle.position.latitude, obstacle.position.longitude, environment.destination.latitude,
-                             environment.destination.longitude);
+    printf("Compute repulsive force from obstacle :\r\n");
+    double distance = computeOrthodormicDistance(obstacle.position, position);
+
+    printf("      Distance : %lf", distance);
+
     VectorPOLAR repulsionVector = createPolarVectorFromPointGpsAPointGpsB(obstacle.position, position);
+
+    printf("      repulsion vector from obstacle : ");
     if (distance < obstacle.radius + 15) {
         repulsionVector.d_radius = -2 * attraction_vector.d_radius;
     } else if (distance < obstacle.radius + 30) {
@@ -231,18 +248,30 @@ VectorGPS computeRepulsiveForceFromObstacle(Obstacle obstacle, VectorPOLAR attra
     } else if (distance < obstacle.radius + 500) {
         repulsionVector.d_radius = -0.1 * attraction_vector.d_radius;
     } else repulsionVector.d_radius = 0;
+    repulsionVector.d_radius = - repulsionVector.d_radius;
+    printf("      radius : %lf, angle : %lf\r\n", repulsionVector.d_radius, repulsionVector.d_angle);
     return convertPolarVectorInGpsVector(repulsionVector);
 }
 
 VectorGPS computeDriverVectorFromEnvironement() {
+    printf("Computing driver vector from the environement\r\n");
+    printf("Vecteur d'attraction :\r\n");
     int i;
     VectorGPS attractionVectorGPS = createGpsVectorFromPointGpsAPointGpsB(position, environment.destination);
+    printVectorGPS(attractionVectorGPS);
     VectorPOLAR attractionVectorPOLAR = convertGpsVectorInPolarVector(attractionVectorGPS);
+    printVectorPolar(attractionVectorPOLAR);
+
+    printf("Vecteur global : \r\n");
     VectorGPS globalVector = attractionVectorGPS;
+    printVectorGPS(globalVector);
     for (i = 0; i < environment.obstacles_counter; i++) {
         globalVector = sumOfGpsVectorsAB(globalVector, computeRepulsiveForceFromObstacle(environment.obstacles[i],
                                                                                          attractionVectorPOLAR));
+        printf("Vecteur global :\r\n");
+        printVectorGPS(globalVector);
     }
+    printVectorPolar(convertGpsVectorInPolarVector(globalVector));
     return globalVector;
 }
 
@@ -255,8 +284,8 @@ VectorPOLAR computeVectorPOLARFromDestination() {
 }
 
 void collectCurrentPosition(){
-    position.longitude = (atof(gps_data.longitude)/100)-0.123585;
-    position.latitude = (atof(gps_data.latitude)/100)+0.52485;
+    position.longitude = (atof(gps_data.longitude)/100)+0.073080;//-0.123585
+    position.latitude = (atof(gps_data.latitude)/100)+0.369184;//+0.52485 +0.369184
 }
 
 
@@ -277,20 +306,32 @@ int main() {
     printf("Distance : %lf\n", getDistanceBetweenPoints(pointGps1, destination));
     position = createPoint(48.752066, 1.565245);
     VectorGPS globalVect = computeDriverVectorFromEnvironement();*/
-    PointGPS destination = createPoint(49.059675, 2.087103);
+
+
+    /*
+    PointGPS destination = createPoint(48.923927, 2.182639);
     init_serial_read();
     FILE* log_file;
+    PointGPS p1 = createPoint(0,0);
+    PointGPS p2 = createPoint(1,0.1);
+    VectorPOLAR vectorPolar = createPolarVectorFromPointGpsAPointGpsB(p1,p2);
+    printf("REsit : %lf %lf", vectorPolar.d_angle, vectorPolar.d_radius);
+    log_file = fopen("./log.txt", "a");
+    fprintf(log_file, "%lf %lf\r\n", vectorPolar.d_angle, vectorPolar.d_radius);
+    fclose(log_file);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
     while (1) {
         get_gps_data();
         print_gps_data();
-        if (gps_data.longitude[0] != 'M') {
+        collectCurrentPosition();
+        //if (gps_data.longitude[0] != 'M' && gps_data.longitude[1] != '(') {
+        if (position.longitude != 0.0) {
             printf("\r\n\r\nAS TEXT \r\n Latitude : %s\r\n Longitude : %s\r\n",
                     gps_data.latitude,
                     gps_data.longitude);
-            collectCurrentPosition();
+
             printf("AS DOUBLE \r\n Latitude : %lf\r\n Longitude : %lf\r\n\r\n\r\n",
                     position.latitude,
                     position.longitude);
@@ -309,7 +350,32 @@ int main() {
                               vectGPSGlobal.d_lat,
                               vectGPSGlobal.d_long
                               );
+            fclose(log_file);
         }else printf("No data yet");
+
     }
 #pragma clang diagnostic pop
+     */
+
+
+    PointGPS pointGps1 = createPoint(49.049446, 2.084837);
+    //PointGPS pointGps2 = createPoint(49.050897, 2.081223);
+    PointGPS destination = createPoint(49.056302, 2.086104);
+    Obstacle obstacle1 = createObstacle(1, 10, pointGps1);
+    //Obstacle obstacle2 = createObstacle(2, 30, pointGps2);
+    Obstacle obstacles[1];
+    obstacles[0] = obstacle1;
+    //obstacles[1] = obstacle2;
+    // environement is global
+    environment = createEnvironment(destination, obstacles, 1);
+    //printf("%d\n",environment.obstacles->id);
+    printf("%d\n", environment.obstacles[0].id);
+    printEnvironment(environment);
+    position = createPoint(49.048564, 2.085163);
+
+    printf("Distance between position and destination : %lf", computeOrthodormicDistance(position, destination));
+
+    VectorGPS globalVect = computeDriverVectorFromEnvironement();
+
+
 }
