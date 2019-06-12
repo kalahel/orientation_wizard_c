@@ -253,6 +253,35 @@ VectorGPS computeRepulsiveForceFromObstacle(Obstacle obstacle, VectorPOLAR attra
     return convertPolarVectorInGpsVector(repulsionVector);
 }
 
+VectorGPS computeAttractiveForceFromDestination(){
+    printf("Compute attractive force from destination :\r\n");
+    double distance = computeOrthodormicDistance(environment.destination, position);
+    printf("      Distance : %lf", distance);
+    VectorPOLAR attractionVector = createPolarVectorFromPointGpsAPointGpsB(environment.destination, position);
+    printf("      repulsion vector from obstacle : ");
+    if (distance < 15) {
+        attractionVector.d_radius = 0;
+    } else if (distance < 30) {
+        attractionVector.d_radius = 0.1;
+    } else if (distance <  50) {
+        attractionVector.d_radius = 0.2;
+    } else if (distance < 70) {
+        attractionVector.d_radius = 0.3;
+    } else if (distance < 100) {
+        attractionVector.d_radius = 0.4;
+    } else if (distance < 150) {
+        attractionVector.d_radius = 0.5;
+    } else if (distance < 250) {
+        attractionVector.d_radius = 0.6;
+    } else if (distance < 500) {
+        attractionVector.d_radius = 0.8;
+    } else attractionVector.d_radius = 1;
+    //attractionVector.d_radius = - attractionVector.d_radius;
+    printf("      radius : %lf, angle : %lf\r\n", attractionVector.d_radius, attractionVector.d_angle);
+    return convertPolarVectorInGpsVector(attractionVector);
+
+}
+
 VectorGPS computeDriverVectorFromEnvironement() {
     printf("Computing driver vector from the environement\r\n");
     printf("Vecteur d'attraction :\r\n");
@@ -305,10 +334,8 @@ int main() {
     printEnvironment(environment);
     printf("Distance : %lf\n", getDistanceBetweenPoints(pointGps1, destination));
     position = createPoint(48.752066, 1.565245);
-    VectorGPS globalVect = computeDriverVectorFromEnvironement();*/
+    VectorGPS globalVect = computeDriverVectorFromEnvironement();
 
-
-    /*
     PointGPS destination = createPoint(48.923927, 2.182639);
     init_serial_read();
     FILE* log_file;
@@ -355,27 +382,23 @@ int main() {
 
     }
 #pragma clang diagnostic pop
-     */
-
-
-    PointGPS pointGps1 = createPoint(49.049446, 2.084837);
+*/
+    //PointGPS pointGps1 = createPoint(49.049446, 2.084837);
     //PointGPS pointGps2 = createPoint(49.050897, 2.081223);
-    PointGPS destination = createPoint(49.056302, 2.086104);
-    Obstacle obstacle1 = createObstacle(1, 10, pointGps1);
+    PointGPS destination = createPoint(48.923209, 2.182694);
+    //Obstacle obstacle1 = createObstacle(1, 10, pointGps1);
     //Obstacle obstacle2 = createObstacle(2, 30, pointGps2);
-    Obstacle obstacles[1];
-    obstacles[0] = obstacle1;
+    Obstacle obstacles[0];
+    //obstacles[0] = obstacle1;
     //obstacles[1] = obstacle2;
     // environement is global
-    environment = createEnvironment(destination, obstacles, 1);
+    environment = createEnvironment(destination, obstacles, 0);
     //printf("%d\n",environment.obstacles->id);
     printf("%d\n", environment.obstacles[0].id);
     printEnvironment(environment);
-    position = createPoint(49.048564, 2.085163);
+    position = createPoint(48.922665, 2.182725);
 
     printf("Distance between position and destination : %lf", computeOrthodormicDistance(position, destination));
 
     VectorGPS globalVect = computeDriverVectorFromEnvironement();
-
-
 }
