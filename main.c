@@ -259,11 +259,11 @@ VectorGPS computeRepulsiveForceFromObstacle(Obstacle obstacle, VectorPOLAR attra
 
 VectorGPS computeAttractiveForceFromDestination(){
     printf("Compute attractive force from destination :\r\n");
-    double distanceToDestination = computeOrthodormicDistance(environment.destination, position);
+    distanceToDestination = computeOrthodormicDistance(position, environment.destination);
     printf("      Distance : %lf", distanceToDestination);
-    VectorPOLAR attractionVector = createPolarVectorFromPointGpsAPointGpsB(environment.destination, position);
-    printf("      repulsion vector from obstacle : ");
-    if (distanceToDestination < 15) {
+    VectorPOLAR attractionVector = createPolarVectorFromPointGpsAPointGpsB(position, environment.destination);
+    printf("      attraction vector from destination : ");
+    if (distanceToDestination < 10) {
         attractionVector.d_radius = 0;
     } else if (distanceToDestination < 30) {
         attractionVector.d_radius = 0.1;
@@ -283,7 +283,6 @@ VectorGPS computeAttractiveForceFromDestination(){
     //attractionVector.d_radius = - attractionVector.d_radius;
     printf("      radius : %lf, angle : %lf\r\n", attractionVector.d_radius, attractionVector.d_angle);
     return convertPolarVectorInGpsVector(attractionVector);
-
 }
 
 VectorGPS computeDriverVectorFromEnvironement() {
@@ -336,7 +335,7 @@ void run_test_with_no_obstacles(){
         print_gps_data();
         collectCurrentPosition();
         //if (gps_data.longitude[0] != 'M' && gps_data.longitude[1] != '(') {
-        if (position.longitude != 0.0) {
+        if (gps_data.longitude[0] != 'M') {
             //printf("\r\n\r\nAS TEXT \r\n Latitude : %s\r\n Longitude : %s\r\n",gps_data.latitude,gps_data.longitude);
 
             //printf("AS DOUBLE \r\n Latitude : %lf\r\n Longitude : %lf\r\n\r\n\r\n",position.latitude,position.longitude);
