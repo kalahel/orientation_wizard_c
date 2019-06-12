@@ -182,8 +182,12 @@ void printVectorGPS(VectorGPS vectorGps){
 void printEnvironment(Environment environment) {
     printf("Destination: (%f, %f)\nList of obstacles:\n", environment.destination.longitude,
            environment.destination.latitude);
-    printObstacle(&environment.obstacles[0]);
-    printObstacle(&environment.obstacles[1]);
+    if(environment.obstacles_counter > 0){
+        int i = 0;
+        for(i; i<environment.obstacles_counter; i++){
+            printObstacle(&environment.obstacles[i]);
+        }
+    }else printf("There are no abstacles registered\r\n");
 }
 
 double computeOrthodormicDistance(PointGPS pointGps1, PointGPS pointGps2) {
@@ -286,7 +290,8 @@ VectorGPS computeDriverVectorFromEnvironement() {
     printf("Computing driver vector from the environement\r\n");
     printf("Vecteur d'attraction :\r\n");
     int i;
-    VectorGPS attractionVectorGPS = createGpsVectorFromPointGpsAPointGpsB(position, environment.destination);
+    //VectorGPS attractionVectorGPS = createGpsVectorFromPointGpsAPointGpsB(position, environment.destination);
+    VectorGPS attractionVectorGPS = computeAttractiveForceFromDestination();
     printVectorGPS(attractionVectorGPS);
     VectorPOLAR attractionVectorPOLAR = convertGpsVectorInPolarVector(attractionVectorGPS);
     printVectorPolar(attractionVectorPOLAR);
