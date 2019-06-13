@@ -375,7 +375,7 @@ void run_test_with_no_obstacles(){
 
 
 int main() {
-    run_test_with_no_obstacles();
+    //run_test_with_no_obstacles();
 /*    PointGPS pointGps1 = createPoint(48.787972, 1.584565);
     PointGPS pointGps2 = createPoint(49.202650, 6.925839);
     PointGPS destination = createPoint(48.721869, 1.491401);
@@ -438,7 +438,7 @@ int main() {
         }else printf("No data yet");
 
     }
-#pragma clang diagnostic pop
+#pragma clang diagnostic pop*/
 
     //PointGPS pointGps1 = createPoint(49.049446, 2.084837);
     //PointGPS pointGps2 = createPoint(49.050897, 2.081223);
@@ -457,5 +457,5 @@ int main() {
 
     printf("Distance between position and destination : %lf", computeOrthodormicDistance(position, destination));
 
-    VectorGPS globalVect = computeDriverVectorFromEnvironement();*/
+    VectorGPS globalVect = computeDriverVectorFromEnvironement();
 }
