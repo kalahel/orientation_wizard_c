@@ -1,16 +1,13 @@
-//
-// Created by Henri on 12/06/2019.
-//
 
 #include "vision.h"
-
-using namespace cv;
-using namespace std;
-
 /**** Global variables *****/
 Coordinates coordinates;
 
 /****** Functions ******/
+
+milliseconds getTime() {
+    return duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+}
 
 /** Fonction qui alloue la mémoire **/
 image img_allocation(int rows, int cols) {
@@ -27,11 +24,10 @@ image img_allocation(int rows, int cols) {
     printf("-FIN ALLOCATION- \n");
 #endif
     return out;
-
 }
 
 /**
- * Fonction qui copie une frame dans la structure image
+ * Fonction qui copie une matrice dans la structure image
 **/
 
 void Mat2byte_copy(Mat *image, struct img *out) {
@@ -59,13 +55,11 @@ void Mat2byte_copy(Mat *image, struct img *out) {
 **/
 
 void get_interest_zone(Mat *image, Rect2d *roi, struct img *out) {
-
-//printf("---GET INTEREST ZONE---- \n");
-//printf("NB LIGNES :%d\n",image->rows);
-//printf("NB COLS   :%d\n",image->cols);
-
-    //alloc mem
-    //(*out) = img_allocation(roi.y + roi.height, roi.x + roi.width);
+#if (DEBUG)
+    printf("---GET INTEREST ZONE---- \n");
+    pintf("NB LIGNES :%d\n",image->rows);
+    printf("NB COLS   :%d\n",image->cols);
+#endif
     Vec3b color;
     for (int y = roi->y; y < roi->y + roi->height; y++) {
         for (int x = roi->x; x < roi->x + roi->width; x++) {
@@ -73,7 +67,22 @@ void get_interest_zone(Mat *image, Rect2d *roi, struct img *out) {
             out->data[y - (int) roi->y][x - (int) roi->y] = (color.val[0] + color.val[1] + color.val[2]) / 3;
         }
     }
-//printf("-FIN INTEREST ZONE - \n");
+#if (DEBUG)
+    printf("-FIN INTEREST ZONE - \n");
+#endif
+
+}
+
+/*
+ * Fonction qui met à jour l'imagette
+ */
+void update_imagette(struct img *image_intereset, struct img *new_roi) {
+
+    for (int y = 0; y < image_intereset->rows; y++) {
+        for (int x = 0; x < image_intereset->cols; x++) {
+            image_intereset->data[y][x] = (1 - ALPHA) * (image_intereset->data[y][x]) + (ALPHA * new_roi->data[y][x]);
+        }
+    }
 }
 
 
@@ -103,8 +112,10 @@ void img_distances(Mat *frame, struct img *image_interest, Rect2d *roi) {
 
 // Correlation 1-D on X shifts
     for (int x = -OPT; x < OPT; x++) {
+
         //printf(" X opt %d\n",x);
         somme2 = 0;
+
         //On parcourt l'imagette roi
         for (int j = roi->y; j < roi->y + roi->height; j++) {
             somme1 = 0;
@@ -127,8 +138,7 @@ void img_distances(Mat *frame, struct img *image_interest, Rect2d *roi) {
 // get the x shit vector
     coordinates.x = xMin;
 
-
-/**********   Correlation 1-D on y shifts   ********/
+//   Correlation 1-D on y shifts
     for (int y = -OPT; y < OPT; y++) {
         somme2 = 0;
         //printf("1 x %d\n",x);
@@ -143,11 +153,8 @@ void img_distances(Mat *frame, struct img *image_interest, Rect2d *roi) {
                     somme1 = somme1 + ((int) image_interest->data[j - (int) roi->y][i - (int) roi->x] -
                                        (int) image.data[j + y][i]);
                 }
-
-
             }
             somme2 += somme1;
-
         }
         //Find x which minimises the distance
         if (somme2 < min) {
@@ -162,6 +169,50 @@ void img_distances(Mat *frame, struct img *image_interest, Rect2d *roi) {
 }
 
 /**
+ * Fonction qui calcule la corrélation totale et renvoie le vecteur de déplacement
+*/
+Coordinates total_correlation(struct img *frame, struct img *image_target) {
+
+    int somme1, somme2, max, rows, cols, rows_it, cols_it;
+    Coordinates coor;
+//Initialisation
+    max = -INFINITY;
+    rows = (*frame).rows;
+    cols = (*frame).cols;
+    rows_it = (*image_target).rows;
+    cols_it = (*image_target).cols;
+
+
+    cout << "DEBUG 1 " << rows << "x" << cols << endl;
+    milliseconds start = getTime();
+// Correlation
+    for (int x = 0; x < cols; x += 5) {
+        // printf(" X %d", x);
+        for (int y = 0; y < rows; y += 5) {
+            somme2 = 0;
+            for (int j = 0; j < rows_it; j++) {
+                somme1 = 0;
+                for (int i = 0; i < cols_it; i++)
+                    if ((i + x < cols) && (j + y < rows))
+                        somme1 += (int) image_target->data[j][i] * (int) frame->data[j + y][i + x];
+                somme2 += somme1;
+            }
+            // Trouver le max
+            if (somme2 > max) {
+                max = somme2;
+                coor.x = x;
+                coor.y = y;
+            }
+        }
+    }
+
+    cout << "DEBUG 2" << endl << (getTime() - start).count() << endl;
+
+    return coor;
+}
+
+
+/**
  * Function witch updates bounding box coordinates
 **/
 
@@ -174,20 +225,166 @@ void update_roi(Mat *frame, struct img *image_interest, Rect2d *roi) {
     (*roi) += Point2d(coordinates.x, coordinates.y);
 }
 
+/**
+ * Fonction qui fait la rotation entre deux images en fonction de la valeur de l'angle du nord
+ */
 
-int main(int argc, char **argv) {
+void rotateMatrix(Mat *frame, Mat *outPut, Rect2d *roi, double teta) {
 
-// Read video
-    //VideoCapture video("video.MOV");
-    VideoCapture video("video3.mp4");
+    double x, y, angle;
+    Vec3b color;
 
-// Exit if video is not opened
+    //récupérer les pixels
+    struct img image = img_allocation(frame->rows, frame->cols);
+    Mat2byte_copy(frame, &image);
+
+    //définir l'angle à 90°
+    angle = (teta * M_PI) / 180.0;
+
+    for (int j = roi->y; j < roi->y + roi->height; j++) {
+        for (int i = roi->x; i < roi->x + roi->width; i++) {
+
+            if (teta == 90.0) {
+                printf("Hello");
+                x = j;
+                y = -i;
+            } else {
+                x = (i * cos(angle)) - (j * sin(angle));
+                y = (j * cos(angle)) + (i * sin(angle));
+            }
+            color.val[0] = image.data[j][i];
+            color.val[1] = image.data[j][i];
+            color.val[2] = image.data[j][i];
+            outPut->at<Vec3b>(Point(x, y)) = color;
+            //outPut->at<Vec3b>(Point(i,j))=0;
+        }
+    }
+}
+
+/**
+ * Fonction qui fait la rotation de roi
+ */
+
+void rotateRoi(Rect2d *roi, double teta) {
+
+    double angle;
+
+    //définir l'angle à 90°
+    angle = (teta * M_PI) / 180.0;
+    double x, y;
+    x = roi->x;
+    y = roi->y;
+    if (angle == 90.0) {
+        roi->x = -y;
+        roi->y = x;
+    } else {
+        roi->x = (x * cos(angle)) - (y * sin(angle));
+        roi->y = (y * cos(angle)) + (x * sin(angle));
+    }
+
+}
+
+/**
+ * Fonction qui lie une image et vérifie si elle est valide
+ */
+
+Mat read_image(String file) {
+
+    //lire l'image
+    Mat img = imread(file);
+    if (!img.data)                              // Check for invalid input
+    {
+        cout << "Could not open or find the image" << std::endl;
+    }
+    return img;
+}
+
+
+/**
+ * Fonction qui détecte l'emplacement d'une cible
+ */
+Coordinates get_ROI(Mat *frame, struct img *image_target) {
+
+    struct img image_frame = img_allocation(frame->rows, frame->cols);
+    Mat2byte_copy(frame, &image_frame);
+
+    //faire la correlation totale
+    Coordinates coor = total_correlation(&image_frame, image_target);
+
+    return coor;
+}
+
+/**
+ * Fonction qui réalise le tracking
+ *
+ */
+int track_target(String file) {
+
+    //get pixels of the taregt image
+    Mat img = read_image(file);
+    struct img image_target = img_allocation(img.rows, img.cols);
+    Mat2byte_copy(&img, &image_target);
+
+
+    //Capture
+    VideoCapture cap(0);
+    if (!cap.isOpened()) {
+        printf("Error\n");
+        return -1;
+    }
+
+    Mat frame;
+    cap >> frame;
+    Coordinates coor = get_ROI(&frame, &image_target);
+    //get ROI
+    Rect2d roi(coor.x, coor.y, img.cols, img.rows);
+
+    for (;;) {
+        //cap >> frame;
+        rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
+        //show image with the tracked object
+        imshow("Tracker", frame);
+        if (waitKey(1) == 27) break;
+    }
+    /*for (;;) {
+        cap >> frame; //get a new frame from camera
+        update_roi(&frame, &image_target, &roi);
+        // draw the tracked object
+        rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
+        //show image with the tracked object
+        imshow("Tracker", frame);
+        //quit on ESC button
+        if (waitKey(1) == 27) break;
+
+    }*/
+
+    return 0;
+}
+
+/**
+ * Fonction qui réalise le tracking
+ *
+ */
+int track_target_video(String file) {
+
+    //get pixels of the taregt image
+    Mat img = read_image(file);
+    struct img image_target = img_allocation(img.rows, img.cols);
+    Mat2byte_copy(&img, &image_target);
+
+
+//VIDEO
+    VideoCapture video("occultation2.MOV");
+    //VideoCapture video("voiture-rouge.MOV");
+    //VideoCapture video("occultation2.MOV");
+
+    // Exit if video is not opened
     if (!video.isOpened()) {
         cerr << "Could not read video file" << endl;
         return 1;
     }
 
-// Read first frame
+    // Read first frame
     Mat frame;
     bool ok = video.read(frame);
     if (!ok) {
@@ -195,32 +392,17 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-// select a bounding box
-    Rect2d roi;
-    roi = selectROI("tracker", frame);
+    //Detect the ROI
+    Coordinates coor = get_ROI(&frame, &image_target);
+    Rect2d roi(coor.x, coor.y, img.cols, img.rows);
 
-//quit if ROI was not selected
-    if (roi.width == 0 || roi.height == 0)
-        return 0;
-
-// Display bounding box.
-    rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
-    imshow("Tracking", frame);
-
-// get interest zone
-    struct img image_interest = img_allocation(roi.y+roi.height, roi.x+roi.width);
-    get_interest_zone(&frame, &roi, &image_interest);
-    printf("Start Correlation\n");
-
-
-    while (video.read(frame)) {
-        update_roi(&frame, &image_interest, &roi);
-        // draw the tracked object
+    for (;;) {
         rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
         //show image with the tracked object
         imshow("Tracker", frame);
         //quit on ESC button
         if (waitKey(1) == 27) break;
+
     }
     return 0;
 }

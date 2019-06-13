@@ -345,7 +345,7 @@ void run_test_with_no_obstacles(){
             printVectorPolar(vectPolarGlobal);
 
             //printf("\r\n vect carth = Latitude : %lf , Longitude : %lf", vectGPSGlobal.d_lat, vectGPSGlobal.d_long);
-            log_file = fopen("./log.txt", "a");
+            log_file = fopen("./log_without_obstacles.txt", "a");
             /*
              * FORMAT OF THE OUTPUT IS :
              * position.lat, position.long, destination.lat, destination.long, distance, vectPolar.radius, vectPolar.angle, vectGPS.lat, vectGPS.long
@@ -362,15 +362,62 @@ void run_test_with_no_obstacles(){
                     vectGPSGlobal.d_long
             );
             fclose(log_file);
+            if(distanceToDestination <15){
+                //EXEC YASMINE
+            }
         }else printf("No data yet");
 
     }
 #pragma clang diagnostic pop
+}
 
+void run_test_with_obstacles(){
+    init_serial_read();
+    PointGPS destination = createPoint(48.923209, 2.182694);
+    PointGPS pointGps1 = createPoint(48.787972, 1.584565);
+    PointGPS pointGps2 = createPoint(49.202650, 6.925839);
+    Obstacle obstacle1 = createObstacle(1, 10, pointGps1);
+    Obstacle obstacle2 = createObstacle(2, 30, pointGps2);
+    Obstacle obstacles[2];
+    obstacles[0] = obstacle1;
+    obstacles[1] = obstacle2;
+    environment = createEnvironment(destination, obstacles, 2);
+    FILE* log_file;
 
-    //printf("Distance between position and destination : %lf", computeOrthodormicDistance(position, destination));
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
+    while (1) {
+        get_gps_data();
+        print_gps_data();
+        collectCurrentPosition();
+        if (gps_data.longitude[0] != 'M') {
+            vectGPSGlobal = computeDriverVectorFromEnvironement();
+            vectPolarGlobal = convertGpsVectorInPolarVector(vectGPSGlobal);
+            printVectorPolar(vectPolarGlobal);
+            log_file = fopen("./log_with_obstacles.txt", "a");
+            /*
+             * FORMAT OF THE OUTPUT IS :
+             * position.lat, position.long, destination.lat, destination.long, distance, vectPolar.radius, vectPolar.angle, vectGPS.lat, vectGPS.long
+             */
+            fprintf(log_file, "%lf,%lf,%lf,%lf,%lf,%lf,%lf\r\n",
+                    position.latitude,
+                    position.longitude,
+                    destination.latitude,
+                    destination.longitude,
+                    distanceToDestination,
+                    vectPolarGlobal.d_angle,
+                    vectPolarGlobal.d_radius,
+                    vectGPSGlobal.d_lat,
+                    vectGPSGlobal.d_long
+            );
+            fclose(log_file);
+            if(distanceToDestination <15){
+                //EXEC YASMINE
+            }
+        }else printf("No data yet");
 
-    //VectorGPS globalVect = computeDriverVectorFromEnvironement();
+    }
+#pragma clang diagnostic pop
 }
 
 
