@@ -2,6 +2,9 @@
 // Created by Henri on 27/05/2019.
 //
 
+#ifndef SERIAL_GPS_GPS
+#define SERIAL_GPS_GPS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>   /* File Control Definitions           */
@@ -10,9 +13,6 @@
 #include <errno.h>   /* ERROR Number Definitions           */
 #include <assert.h>
 #include <string.h>
-
-#ifndef SERIAL_GPS_GPS
-#define SERIAL_GPS_GPS
 
 #define READ_BUFFER_SIZE 1024
 #define POSITION_LINE_PREFIX_GPGGA "$GPGGA"

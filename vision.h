@@ -1,6 +1,10 @@
 //
 // Created by GUEDJOU on 2019-06-13.
 //
+
+#ifndef SMARTDRONEGIT_VISION_H
+#define SMARTDRONEGIT_VISION_H
+
 #include "opencv2/opencv.hpp"
 #include <opencv2/core/utility.hpp>
 #include <opencv2/tracking.hpp>
@@ -9,9 +13,6 @@
 #include <opencv2/core/core.hpp>
 #include <iostream>
 #include <cstring>
-
-#ifndef SMARTDRONEGIT_VISION_H
-#define SMARTDRONEGIT_VISION_H
 
 #define OPT 7
 #define DEBUG 0
