@@ -11,6 +11,10 @@
 #include <stdio.h>
 #include <cstring>
 
+/*
+ *
+ */
+
 #ifndef SMARTDRONEGIT_VISION_H
 #define SMARTDRONEGIT_VISION_H
 
