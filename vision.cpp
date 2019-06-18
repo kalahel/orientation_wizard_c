@@ -316,7 +316,7 @@ int track_target(String file) {
 
     //get pixels of the taregt image
     Mat img = read_image(file);
-    //struct img image_target = img_allocation(img.rows, img.cols);
+    struct img image_target = img_allocation(img.rows, img.cols);
     //Mat2byte_copy(&img, &image_target);
 
 
@@ -423,7 +423,7 @@ Mat get_matrix_roi ( Mat *frame, Rect *roi){
 
 double get_score_histogramme(MatND hist_1, MatND hist_2) {
 
-    return compareHist( hist_1, hist_2, HISTCMP_BHATTACHARYYA);
+    return compareHist( hist_1, hist_2, CV_COMP_BHATTACHARYYA);
 
 }
 
