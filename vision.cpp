@@ -599,7 +599,7 @@ Coordinates detect_hist_scaled(Mat *frame, Mat *image_target) {
                         //update_roi(&frame, &image_target, &current_roi);
                     // draw rect
                     rectangle(*frame, current_roi, Scalar(255, 0, 0), 2, 0);
-                    imshow("Tracker", frame);
+                    imshow("Tracker", *frame);
                 }
 
                 //printf("END-target frame\n");
