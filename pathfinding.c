@@ -454,5 +454,5 @@ void run_test_with_obstacles_static() {
 }
 
 void run_test_yasmine(){
-    track_target("../vignette.png");
+    track_target_hist("../vignette.png");
 }

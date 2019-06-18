@@ -57,5 +57,11 @@ Mat read_image(String file);
 Coordinates get_ROI(Mat *frame, struct img *image_target);
 int track_target(String file);
 int track_target_video(String file);
+Mat get_matrix_roi ( Mat *frame, Rect *roi);
+double get_score_histogramme(MatND hist_1, MatND hist_2);
+MatND generate_histograme (Mat image);
+Coordinates detect_hist(Mat *frame, Mat *image_target);
+int track_target_hist(String file);
+
 
 #endif //SMARTDRONEGIT_VISION_H

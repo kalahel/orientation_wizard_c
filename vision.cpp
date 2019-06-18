@@ -316,8 +316,8 @@ int track_target(String file) {
 
     //get pixels of the taregt image
     Mat img = read_image(file);
-    struct img image_target = img_allocation(img.rows, img.cols);
-    Mat2byte_copy(&img, &image_target);
+    //struct img image_target = img_allocation(img.rows, img.cols);
+    //Mat2byte_copy(&img, &image_target);
 
 
     //Capture
@@ -329,7 +329,8 @@ int track_target(String file) {
 
     Mat frame;
     cap >> frame;
-    Coordinates coor = get_ROI(&frame, &image_target);
+    //Coordinates coor = get_ROI(&frame, &image_target);
+    Coordinates coor = detect_hist(&frame, &img);
     //get ROI
     Rect roi(coor.x, coor.y, img.cols, img.rows);
 
@@ -398,5 +399,152 @@ int track_target_video(String file) {
         if (waitKey(1) == 27) break;
 
     }
+    return 0;
+}
+
+
+
+
+/**Fonction qui me renvoie une matrice à partir d'une ROI
+ *
+*/
+
+Mat get_matrix_roi ( Mat *frame, Rect *roi){
+
+    Mat matrix_roi;
+
+    return (*frame)( Range(roi->y, roi->height - 1 ), Range( roi->x, roi->width - 1 ) );
+
+}
+
+/**
+ * Fonction qui renvoie le score entre deux histogrammes
+ */
+
+double get_score_histogramme(MatND hist_1, MatND hist_2) {
+
+    return compareHist( hist_1, hist_2, HISTCMP_BHATTACHARYYA);
+
+}
+
+
+MatND generate_histograme (Mat *image) {
+
+    Mat hsv_image, hsv_half_down;
+
+    /// Convert to HSV
+    cvtColor( (*image), hsv_image, COLOR_BGR2HSV );
+
+    hsv_half_down = (*image)(Range( image->rows/2, image->rows - 1 ), Range( 0, image->cols - 1 ) );
+
+    /// Using 50 bins for hue and 60 for saturation
+    int h_bins = 50; int s_bins = 60;
+    int histSize[] = { h_bins, s_bins };
+
+    // hue varies from 0 to 179, saturation from 0 to 255
+    float h_ranges[] = { 0, 180 };
+    float s_ranges[] = { 0, 256 };
+
+    const float* ranges[] = { h_ranges, s_ranges };
+
+    // Use the o-th and 1-st channels
+    int channels[] = { 0, 1 };
+
+    /// Histograms
+    MatND hist_image;
+
+    /// Calculate the histograms for the HSV images
+    calcHist( &(*image), 1, channels, Mat(), hist_image, 2, histSize, ranges, true, false );
+    normalize( hist_image, hist_image, 0, 1, NORM_MINMAX, -1, Mat() );
+
+    return hist_image;
+}
+
+/**
+ * Fonction qui calcule la corrélation totale et renvoie le vecteur de déplacement
+*/
+Coordinates detect_hist(Mat *frame, Mat *image_target) {
+
+    int min, rows, cols, rows_it, cols_it;
+    Coordinates coor;
+    Mat current_matrix;
+    MatND current_hist;
+    double current_score;
+
+    //Initialisation
+    min = 1;
+    rows = (*frame).rows;
+    cols = (*frame).cols;
+    rows_it = (*image_target).rows;
+    cols_it = (*image_target).cols;
+
+
+    // calculer l'histograme de l'image target
+    MatND hist_target = generate_histograme(image_target);
+
+// Correlation
+    for (int x = 0; x < cols; x += 5) {
+        // printf(" X %d", x);
+        for (int y = 0; y < rows; y += 5) {
+
+            Rect current_roi(x, x+(*image_target).cols, y, y+(*image_target).rows);
+            current_matrix=get_matrix_roi (frame, &current_roi);
+            current_hist=generate_histograme(&current_matrix);
+            current_score=get_score_histogramme(hist_target, current_hist);
+
+
+            // Trouver le max
+            if (current_score < min) {
+                min =  current_score;
+                coor.x = x;
+                coor.y = y;
+            }
+        }
+    }
+
+    return coor;
+}
+
+int track_target_hist(String file) {
+
+    //get pixels of the taregt image
+    Mat img = read_image(file);
+    //struct img image_target = img_allocation(img.rows, img.cols);
+    //Mat2byte_copy(&img, &image_target);
+
+
+    //Capture
+    VideoCapture cap(0);
+    if (!cap.isOpened()) {
+        printf("Error\n");
+        return -1;
+    }
+
+    Mat frame;
+    cap >> frame;
+    //Coordinates coor = get_ROI(&frame, &image_target);
+    Coordinates coor = detect_hist(&frame, &img);
+    //get ROI
+    Rect roi(coor.x, coor.y, img.cols, img.rows);
+
+    //for (;;) {
+    //cap >> frame;
+    rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
+    //show image with the tracked object
+    imshow("Tracker", frame);
+    if (waitKey(1) == 27) return 1;
+    //}
+    for (;;) {
+        cap >> frame; //get a new frame from camera
+        //update_roi(&frame, &image_target, &roi);
+        // draw the tracked object
+        rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
+        //show image with the tracked object
+        imshow("Tracker", frame);
+        //quit on ESC button
+        if (waitKey(1) == 27) return 1;
+
+    }
+
     return 0;
 }
