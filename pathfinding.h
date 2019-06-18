@@ -103,6 +103,7 @@ void collectCurrentPosition();
 void run_test_with_no_obstacles();
 void run_test_with_obstacles();
 void run_test_with_obstacles_static();
+void run_test_yasmine();
 
 
 

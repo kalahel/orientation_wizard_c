@@ -1,7 +1,7 @@
 #include "pathfinding.h"
 
 int main() {
-    run_test_with_obstacles_static();
+    run_test_yasmine();
 /*    PointGPS pointGps1 = createPoint(48.787972, 1.584565);
     PointGPS pointGps2 = createPoint(49.202650, 6.925839);
     PointGPS destination = createPoint(48.721869, 1.491401);

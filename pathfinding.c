@@ -3,6 +3,7 @@
 //
 
 #include "pathfinding.h"
+#include "vision.h"
 
 PointGPS createPoint(double latitude, double longitude) {
     PointGPS point;
@@ -444,4 +445,8 @@ void run_test_with_obstacles_static() {
         }
     }
 #pragma clang diagnostic pop
+}
+
+void run_test_yasmine(){
+    track_target("../vignette.png");
 }
