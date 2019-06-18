@@ -1,5 +1,6 @@
 
 #include "vision.h"
+#include "../../../../cygwin64/usr/include/unistd.h"
 
 /**** Global variables *****/
 Coordinates coordinates;
@@ -601,6 +602,7 @@ Coordinates detect_hist_scaled(Mat *frame, Mat *image_target) {
                     // draw rect
                     rectangle(*frame, current_roi, Scalar(255, 0, 0), 2, 0);
                     imshow("Tracker", *frame);
+                    sleep(1);
                 }
 
                 //printf("END-target frame\n");
