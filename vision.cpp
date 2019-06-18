@@ -598,7 +598,7 @@ Coordinates detect_hist_scaled(Mat *frame, Mat *image_target) {
                     //Display the current analysed zone
                         //update_roi(&frame, &image_target, &current_roi);
                     // draw rect
-                    rectangle(frame, current_roi, Scalar(255, 0, 0), 2, 0);
+                    rectangle(&frame, &current_roi, Scalar(255, 0, 0), 2, 0);
                     imshow("Tracker", frame);
                 }
 
