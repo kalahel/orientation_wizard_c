@@ -5,10 +5,6 @@ Coordinates coordinates;
 
 /****** Functions ******/
 
-milliseconds getTime() {
-    //test
-    return duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-}
 
 /** Fonction qui alloue la mémoire **/
 image img_allocation(int rows, int cols) {
@@ -55,7 +51,7 @@ void Mat2byte_copy(Mat *image, struct img *out) {
  *Fonction qui copie une frame dans la structure image
 **/
 
-void get_interest_zone(Mat *image, Rect2d *roi, struct img *out) {
+void get_interest_zone(Mat *image, Rect *roi, struct img *out) {
 #if (DEBUG)
     printf("---GET INTEREST ZONE---- \n");
     pintf("NB LIGNES :%d\n",image->rows);
@@ -92,7 +88,7 @@ void update_imagette(struct img *image_intereset, struct img *new_roi) {
 **/
 
 
-void img_distances(Mat *frame, struct img *image_interest, Rect2d *roi) {
+void img_distances(Mat *frame, struct img *image_interest, Rect *roi) {
 
     int somme1, somme2, min, xMin, yMin, rows, cols;
 
@@ -184,8 +180,6 @@ Coordinates total_correlation(struct img *frame, struct img *image_target) {
     cols_it = (*image_target).cols;
 
 
-    cout << "DEBUG 1 " << rows << "x" << cols << endl;
-    milliseconds start = getTime();
 // Correlation
     for (int x = 0; x < cols; x += 5) {
         // printf(" X %d", x);
@@ -207,7 +201,6 @@ Coordinates total_correlation(struct img *frame, struct img *image_target) {
         }
     }
 
-    cout << "DEBUG 2" << endl << (getTime() - start).count() << endl;
 
     return coor;
 }
@@ -217,20 +210,20 @@ Coordinates total_correlation(struct img *frame, struct img *image_target) {
  * Function witch updates bounding box coordinates
 **/
 
-void update_roi(Mat *frame, struct img *image_interest, Rect2d *roi) {
+void update_roi(Mat *frame, struct img *image_interest, Rect *roi) {
 
 //calculate the distance between images
     img_distances(frame, image_interest, roi);
 
 //get the vector shift
-    (*roi) += Point2d(coordinates.x, coordinates.y);
+    (*roi) += Point(coordinates.x, coordinates.y);
 }
 
 /**
  * Fonction qui fait la rotation entre deux images en fonction de la valeur de l'angle du nord
  */
 
-void rotateMatrix(Mat *frame, Mat *outPut, Rect2d *roi, double teta) {
+void rotateMatrix(Mat *frame, Mat *outPut, Rect *roi, double teta) {
 
     double x, y, angle;
     Vec3b color;
@@ -266,7 +259,7 @@ void rotateMatrix(Mat *frame, Mat *outPut, Rect2d *roi, double teta) {
  * Fonction qui fait la rotation de roi
  */
 
-void rotateRoi(Rect2d *roi, double teta) {
+void rotateRoi(Rect *roi, double teta) {
 
     double angle;
 
@@ -338,16 +331,16 @@ int track_target(String file) {
     cap >> frame;
     Coordinates coor = get_ROI(&frame, &image_target);
     //get ROI
-    Rect2d roi(coor.x, coor.y, img.cols, img.rows);
+    Rect roi(coor.x, coor.y, img.cols, img.rows);
 
-    for (;;) {
+    //for (;;) {
         //cap >> frame;
         rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
         //show image with the tracked object
         imshow("Tracker", frame);
-        if (waitKey(1) == 27) break;
-    }
-    /*for (;;) {
+        if (waitKey(1) == 27) return 1;
+   //}
+    for (;;) {
         cap >> frame; //get a new frame from camera
         update_roi(&frame, &image_target, &roi);
         // draw the tracked object
@@ -355,9 +348,9 @@ int track_target(String file) {
         //show image with the tracked object
         imshow("Tracker", frame);
         //quit on ESC button
-        if (waitKey(1) == 27) break;
+        if (waitKey(1) == 27) return 1;
 
-    }*/
+    }
 
     return 0;
 }
@@ -395,7 +388,7 @@ int track_target_video(String file) {
 
     //Detect the ROI
     Coordinates coor = get_ROI(&frame, &image_target);
-    Rect2d roi(coor.x, coor.y, img.cols, img.rows);
+    Rect roi(coor.x, coor.y, img.cols, img.rows);
 
     for (;;) {
         rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
