@@ -5,6 +5,12 @@
 #include "pathfinding.h"
 #include "vision.h"
 
+Environment environment;
+PointGPS position;
+VectorGPS vectGPSGlobal;
+VectorPOLAR vectPolarGlobal;
+double distanceToDestination;
+
 PointGPS createPoint(double latitude, double longitude) {
     PointGPS point;
     point.latitude = latitude;

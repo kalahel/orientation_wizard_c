@@ -62,13 +62,13 @@ struct Environment {
 /*
  * Global variables
  */
-
+/*
 Environment environment;
 PointGPS position;
 VectorGPS vectGPSGlobal;
 VectorPOLAR vectPolarGlobal;
 double distanceToDestination;
-
+*/
 /*
  * Functions
  */

@@ -65,7 +65,7 @@ int main() {
 
     }
 #pragma clang diagnostic pop*/
-
+/*
     //PointGPS pointGps1 = createPoint(49.049446, 2.084837);
     //PointGPS pointGps2 = createPoint(49.050897, 2.081223);
     PointGPS destination = createPoint(48.923209, 2.182694);
@@ -83,5 +83,5 @@ int main() {
 
     printf("Distance between position and destination : %lf", computeOrthodormicDistance(position, destination));
 
-    VectorGPS globalVect = computeDriverVectorFromEnvironement();
+    VectorGPS globalVect = computeDriverVectorFromEnvironement();*/
 }

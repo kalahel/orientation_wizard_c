@@ -34,7 +34,7 @@ char **str_split(char *a_str, const char a_delim) {
     /* Add space for terminating null string so caller
        knows where the list of returned strings ends. */
     count++;
-    result = malloc(sizeof(char *) * count);
+    result = (char**)(malloc(sizeof(char *) * count));
     if (result) {
         size_t idx = 0;
         char *token = strtok(a_str, delim);
@@ -50,7 +50,7 @@ char **str_split(char *a_str, const char a_delim) {
     return result;
 }
 
-_Bool starts_with(const char *string, const char *prefix) {
+int starts_with(const char *string, const char *prefix) {
     while (*prefix) {
         if (*prefix++ != *string++)return 0;
     }

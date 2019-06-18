@@ -8,6 +8,7 @@
 //#include <opencv2/highgui.hpp>
 #include <opencv2/core/core.hpp>
 #include <iostream>
+#include <stdio.h>
 #include <cstring>
 
 #ifndef SMARTDRONEGIT_VISION_H
