@@ -331,7 +331,8 @@ int track_target(String file) {
     Mat frame;
     cap >> frame;
     //Coordinates coor = get_ROI(&frame, &image_target);
-    Coordinates coor = detect_hist(&frame, &img);
+    //Coordinates coor = detect_hist(&frame, &img);
+    Coordinates coor = detect_hist_scaled(&frame, &img);
     //get ROI
     Rect roi(coor.x, coor.y, img.cols, img.rows);
 
