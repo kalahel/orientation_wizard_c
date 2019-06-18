@@ -463,9 +463,13 @@ MatND generate_histograme (Mat *image) {
 /**
  * Fonction qui calcule la corrélation totale et renvoie le vecteur de déplacement
 */
+/**
+ * Fonction qui calcule la corrélation totale et renvoie le vecteur de déplacement
+*/
 Coordinates detect_hist(Mat *frame, Mat *image_target) {
 
-    int min, rows, cols, rows_it, cols_it;
+    double min;
+    int rows, cols, rows_target, cols_target;
     Coordinates coor;
     Mat current_matrix;
     MatND current_hist;
@@ -475,22 +479,27 @@ Coordinates detect_hist(Mat *frame, Mat *image_target) {
     min = 1;
     rows = (*frame).rows;
     cols = (*frame).cols;
-    rows_it = (*image_target).rows;
-    cols_it = (*image_target).cols;
-
+    cols_target=(*image_target).rows;
+    rows_target=(*image_target).rows;
 
     // calculer l'histograme de l'image target
+    printf("BEGIN - Target Histogram\n");
     MatND hist_target = generate_histograme(image_target);
+    printf("END - Target Histogram\n");
 
 // Correlation
     for (int x = 0; x < cols; x += 5) {
         // printf(" X %d", x);
         for (int y = 0; y < rows; y += 5) {
+            // printf("BEGIN-target frame\n");
+            if ( (x+cols_target< cols) && (y+rows_target < rows) ){
+                Rect current_roi(x, y,x+cols_target, y+rows_target);
+                current_matrix=get_matrix_roi (frame, &current_roi);
+                current_hist=generate_histograme(&current_matrix);
+                current_score=get_score_histogramme(hist_target, current_hist);
+            }
 
-            Rect current_roi(x, x+(*image_target).cols, y, y+(*image_target).rows);
-            current_matrix=get_matrix_roi (frame, &current_roi);
-            current_hist=generate_histograme(&current_matrix);
-            current_score=get_score_histogramme(hist_target, current_hist);
+            //printf("END-target frame\n");
 
 
             // Trouver le max
