@@ -425,7 +425,7 @@ Mat get_matrix_roi ( Mat *frame, Rect *roi){
 
 double get_score_histogramme(MatND *hist_1, MatND *hist_2) {
 
-    double score =  compareHist( *hist_1, *hist_2, HISTCMP_BHATTACHARYYA);
+    double score =  compareHist( *hist_1, *hist_2, CV_COMP_BHATTACHARYYA);
     //printf("Score Fun %f\n", score);
     return score;
 
@@ -517,7 +517,7 @@ Coordinates detect_hist(Mat *frame, Mat *image_target) {
     return coor;
 }
 
-int track_target(String file) {
+int track_target_hist(String file) {
 
     //get pixels of the taregt image
     Mat img = read_image(file);
@@ -664,7 +664,7 @@ void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
  */
 
 
-int track_roi_manually(){
+/*int track_roi_manually(){
 
     //Capture
     VideoCapture cap(0);
@@ -715,13 +715,13 @@ int track_roi_manually(){
 
 
 
-}
+}*/
 /**
  * Fonction qui track sur une video
  *
  */
 
-int track_roi_manually_video(String file){
+/*int track_roi_manually_video(String file){
 
     //Capture
 
@@ -777,7 +777,7 @@ int track_roi_manually_video(String file){
     }
 
 
-}
+}*/
 
 /*
  *
