@@ -1,6 +1,11 @@
 //
 // Created by GUEDJOU on 2019-06-13.
 //
+
+#ifndef SMARTDRONEGIT_VISION_H
+#define SMARTDRONEGIT_VISION_H
+
+
 #include "opencv2/opencv.hpp"
 //#include <opencv2/gpu/device/utility.hpp>
 //#include <opencv2/tracking.hpp>
@@ -15,8 +20,6 @@
  *
  */
 
-#ifndef SMARTDRONEGIT_VISION_H
-#define SMARTDRONEGIT_VISION_H
 
 #define OPT 7
 #define DEBUG 0
@@ -57,13 +60,13 @@ Mat read_image(String file);
 Coordinates get_ROI(Mat *frame, struct img *image_target);
 int track_target(String file);
 int track_target_video(String file);
-Mat get_matrix_roi ( Mat *frame, Rect *roi);
-double get_score_histogramme(MatND *hist_1, MatND *hist_2)
-MatND generate_histograme (Mat image);
+Mat get_matrix_roi(Mat *frame, Rect *roi);
+double get_score_histogramme(MatND *hist_1, MatND *hist_2);
+MatND generate_histograme(Mat image);
 Coordinates detect_hist(Mat *frame, Mat *image_target);
 Coordinates detect_hist_scaled(Mat *frame, Mat *image_target);
 int track_target_hist(String file);
-void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist)
+void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist);
 
 
 #endif //SMARTDRONEGIT_VISION_H
