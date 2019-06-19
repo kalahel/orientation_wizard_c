@@ -241,7 +241,7 @@ void rotateMatrix(Mat *frame, Mat *outPut, Rect *roi, double teta) {
         for (int i = roi->x; i < roi->x + roi->width; i++) {
 
             if (teta == 90.0) {
-                printf("Hello");
+                //printf("Hello");
                 x = j;
                 y = -i;
             } else {
@@ -512,7 +512,7 @@ Coordinates detect_hist(Mat *frame, Mat *image_target) {
             }
         }
     }
-    printf("Coordonnées envoyées : X %f , Y %f\n", coor.x, coor.y);
+    //printf("Coordonnées envoyées : X %f , Y %f\n", coor.x, coor.y);
 
     return coor;
 }
