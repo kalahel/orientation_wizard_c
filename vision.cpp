@@ -1,6 +1,6 @@
 
 #include "vision.h"
-#include "../../../../cygwin64/usr/include/unistd.h"
+#include <unistd.h>
 
 /**** Global variables *****/
 Coordinates coordinates;
