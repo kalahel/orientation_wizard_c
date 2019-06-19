@@ -539,6 +539,15 @@ int track_target_hist(String file) {
     //get ROI
     Rect roi(coor.x, coor.y, img.cols, img.rows);
 
+    //get histogram of target
+
+    Mat roi_matrix=get_matrix_roi(&frame, &roi);
+    MatND roi_hist=generate_histograme(&roi_matrix);
+
+
+
+
+
     //for (;;) {
     //cap >> frame;
     rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
@@ -548,7 +557,7 @@ int track_target_hist(String file) {
     //}
     for (;;) {
         cap >> frame; //get a new frame from camera
-        update_roi_hist(&frame, &image_target, &roi);
+        update_roi_hist(&frame, &roi, &roi_hist);
         // draw the tracked object
         rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
         //show image with the tracked object
@@ -599,14 +608,14 @@ Coordinates get_distance_bhattacharyya (Mat *frame, Rect *roi, MatND *roi_hist) 
             current_score=get_score_histogramme(roi_hist, &current_hist);
 
         }
-        printf("Minimum %f, Current Score %f, x %d\n", min, current_score, x);
+        //printf("Minimum %f, Current Score %f, x %d\n", min, current_score, x);
 
         // Trouver le max
         if (current_score < min) {
             //printf(" Score %f  min %f \n", current_score, min);
             min =  current_score;
             coor.x = (double)x;
-            printf("Dans if x %f \n", coor.x );
+            //printf("Dans if x %f \n", coor.x );
         }
     }
 
@@ -637,7 +646,7 @@ Coordinates get_distance_bhattacharyya (Mat *frame, Rect *roi, MatND *roi_hist) 
             printf("Dans if y %f \n", coor.y );
         }
     }
-    printf("Coordonnées envoyées  x %f Coordonées y %f\n", coor.x, coor.y);
+    //printf("Coordonnées envoyées  x %f Coordonées y %f\n", coor.x, coor.y);
     return coor;
 
 
@@ -651,7 +660,7 @@ void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
 
     Coordinates coor= get_distance_bhattacharyya (frame, roi, roi_hist);
 
-    printf("Coordonées Reçues X %f,  Y %f\n", coor.x, coor.y);
+    //printf("Coordonées Reçues X %f,  Y %f\n", coor.x, coor.y);
 
     //update roi
     (*roi) += Point(coor.x, coor.y);
