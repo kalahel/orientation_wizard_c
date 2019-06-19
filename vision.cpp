@@ -603,18 +603,17 @@ Coordinates detect_hist_scaled(Mat *frame, Mat *image_target) {
                     rectangle(*frame, current_roi, Scalar(255, 0, 0), 2, 0);
                     imshow("Tracker", *frame);
                     sleep(1);
+                    if (current_score < min) {
+                        min = current_score;
+                        coor.x = x;
+                        coor.y = y;
+                    }
                 }
 
                 //printf("END-target frame\n");
 
 
                 // Trouver le max
-                if (current_score < min) {
-                    min = current_score;
-                    coor.x = x;
-                    coor.y = y;
-                }
-
 
             }
         }
