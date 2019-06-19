@@ -548,7 +548,7 @@ int track_target_hist(String file) {
     //}
     for (;;) {
         cap >> frame; //get a new frame from camera
-        //update_roi(&frame, &image_target, &roi);
+        update_roi_hist(&frame, &image_target, &roi);
         // draw the tracked object
         rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
         //show image with the tracked object
