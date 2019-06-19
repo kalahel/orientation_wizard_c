@@ -815,7 +815,7 @@ Coordinates detect_hist_scaled(Mat *frame, Mat *image_target) {
                     Rect current_roi(x, y, x + ((int)cols_target*(scale_coeff*0.1)), y + ((int)rows_target*(scale_coeff*0.1)));
                     current_matrix = get_matrix_roi(frame, &current_roi);
                     current_hist = generate_histograme(&current_matrix);
-                    current_score = get_score_histogramme(hist_target, current_hist);
+                    current_score = get_score_histogramme(&hist_target, &current_hist);
                     //Display the current analysed zone
                         //update_roi(&frame, &image_target, &current_roi);
                     // draw rect
