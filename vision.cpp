@@ -406,15 +406,16 @@ int track_target_video(String file) {
 }
 
 
-/**Fonction qui me renvoie une matrice à partir d'une ROI
+/**
+ * Fonction qui me renvoie une matrice à partir d'une ROI
  *
-*/
+ */
 
-Mat get_matrix_roi(Mat *frame, Rect *roi) {
+Mat get_matrix_roi ( Mat *frame, Rect *roi){
 
     Mat matrix_roi;
-
-    return (*frame)(Range(roi->y, roi->height - 1), Range(roi->x, roi->width - 1));
+    //printf("Roi y %d Roi x %d Width %d  Height %d\n", roi->y, roi->x, roi->width, roi->height );
+    return (*frame)( Range(roi->y, roi->height +roi->y - 1 ), Range( roi->x, roi->width +roi->x - 1 ) );
 
 }
 
@@ -422,9 +423,11 @@ Mat get_matrix_roi(Mat *frame, Rect *roi) {
  * Fonction qui renvoie le score entre deux histogrammes
  */
 
-double get_score_histogramme(MatND hist_1, MatND hist_2) {
+double get_score_histogramme(MatND *hist_1, MatND *hist_2) {
 
-    return compareHist(hist_1, hist_2, CV_COMP_BHATTACHARYYA);
+    double score =  compareHist( *hist_1, *hist_2, HISTCMP_BHATTACHARYYA);
+    //printf("Score Fun %f\n", score);
+    return score;
 
 }
 
@@ -434,30 +437,27 @@ MatND generate_histograme(Mat *image) {
     Mat hsv_image, hsv_half_down;
 
     /// Convert to HSV
-    cvtColor((*image), hsv_image, COLOR_BGR2HSV);
-
-    hsv_half_down = (*image)(Range(image->rows / 2, image->rows - 1), Range(0, image->cols - 1));
+    cvtColor( (*image), hsv_image, COLOR_BGR2HSV );
 
     /// Using 50 bins for hue and 60 for saturation
-    int h_bins = 50;
-    int s_bins = 60;
-    int histSize[] = {h_bins, s_bins};
+    int h_bins = 50; int s_bins = 60;
+    int histSize[] = { h_bins, s_bins };
 
     // hue varies from 0 to 179, saturation from 0 to 255
-    float h_ranges[] = {0, 180};
-    float s_ranges[] = {0, 256};
+    float h_ranges[] = { 0, 180 };
+    float s_ranges[] = { 0, 256 };
 
-    const float *ranges[] = {h_ranges, s_ranges};
+    const float* ranges[] = { h_ranges, s_ranges };
 
     // Use the o-th and 1-st channels
-    int channels[] = {0, 1};
+    int channels[] = { 0, 1 };
 
     /// Histograms
     MatND hist_image;
 
     /// Calculate the histograms for the HSV images
-    calcHist(&(*image), 1, channels, Mat(), hist_image, 2, histSize, ranges, true, false);
-    normalize(hist_image, hist_image, 0, 1, NORM_MINMAX, -1, Mat());
+    calcHist( &(*image), 1, channels, Mat(), hist_image, 2, histSize, ranges, true, false );
+    normalize( hist_image, hist_image, 0, 1, NORM_MINMAX, -1, Mat() );
 
     return hist_image;
 }
@@ -465,58 +465,59 @@ MatND generate_histograme(Mat *image) {
 /**
  * Fonction qui calcule la corrélation totale et renvoie le vecteur de déplacement
 */
-/**
- * Fonction qui calcule la corrélation totale et renvoie le vecteur de déplacement
-*/
 Coordinates detect_hist(Mat *frame, Mat *image_target) {
 
     double min;
-    int rows, cols, rows_target, cols_target;
+    int rows, cols, rows_target, cols_target, roi_x, roi_y;
     Coordinates coor;
     Mat current_matrix;
     MatND current_hist;
     double current_score;
 
     //Initialisation
-    min = 1;
+    min = 1.0;
+    current_score=1;
     rows = (*frame).rows;
     cols = (*frame).cols;
-    cols_target = (*image_target).rows;
-    rows_target = (*image_target).rows;
+    cols_target=(*image_target).rows;
+    rows_target=(*image_target).rows;
 
     // calculer l'histograme de l'image target
-    printf("BEGIN - Target Histogram\n");
+    //printf("BEGIN - Target Histogram\n");
     MatND hist_target = generate_histograme(image_target);
-    printf("END - Target Histogram\n");
+    //printf("END - Target Histogram\n");
 
 // Correlation
     for (int x = 0; x < cols; x += 5) {
         // printf(" X %d", x);
         for (int y = 0; y < rows; y += 5) {
             // printf("BEGIN-target frame\n");
-            if ((x + cols_target < cols) && (y + rows_target < rows)) {
-                Rect current_roi(x, y, x + cols_target, y + rows_target);
-                current_matrix = get_matrix_roi(frame, &current_roi);
-                current_hist = generate_histograme(&current_matrix);
-                current_score = get_score_histogramme(hist_target, current_hist);
+            if ( (x+cols_target < cols)  && (y+rows_target < rows) ){
+                //printf("BEGIN- x %d, cols %d, rows %d",x, cols_roi, rows_roi);
+                Rect current_roi(x, y,cols_target, rows_target);
+                current_matrix=get_matrix_roi (frame, &current_roi);
+                current_hist=generate_histograme(&current_matrix);
+                current_score=get_score_histogramme(&hist_target, &current_hist);
             }
 
-            //printf("END-target frame\n");
+            // printf("Min %f, Current Scotr %f, x %d, y %d\n", min, current_score, x, y);
 
 
             // Trouver le max
             if (current_score < min) {
-                min = current_score;
-                coor.x = x;
-                coor.y = y;
+                min =  current_score;
+                coor.x = (double)x;
+                coor.y = (double)y;
+                // printf("Dans if  X %f, Y %f\n ", coor.x, coor.y);
             }
         }
     }
+    printf("Coordonnées envoyées : X %f , Y %f\n", coor.x, coor.y);
 
     return coor;
 }
 
-int track_target_hist(String file) {
+int track_target(String file) {
 
     //get pixels of the taregt image
     Mat img = read_image(file);
@@ -558,6 +559,224 @@ int track_target_hist(String file) {
     }
 
     return 0;
+}
+
+/**
+ * Fonction qui calcule ma ditance de bhattacharyya entre deux histograme sur les imagettes candidates et renvoie le maximum
+ */
+
+Coordinates get_distance_bhattacharyya (Mat *frame, Rect *roi, MatND *roi_hist) {
+
+    int  rows, cols, cols_roi, rows_roi, roi_x, roi_y;
+    Mat current_matrix;
+    MatND current_hist;
+    double min, current_score;
+    Coordinates coor;
+
+// get rows and cols
+    rows = frame->rows;
+    cols = frame->cols;
+    cols_roi=roi->width;
+    rows_roi=roi->height;
+    roi_x=roi->x;
+    roi_y=roi->y;
+
+
+//Initialisation
+    min = 1.0;
+    current_score=1.0;
+
+// Bhattacharyya distance X shifts
+    for (int x = -OPT; x < OPT; x++) {
+
+        //On parcourt l'imagette roi
+        if ( (x+roi_x+cols_roi < cols) && (x+roi_x > 0) ){
+            //printf("BEGIN- x %d, cols %d, rows %d",x, cols_roi, rows_roi);
+            Rect current_roi(x+roi_x, roi_y,cols_roi, rows_roi);
+            current_matrix=get_matrix_roi (frame, &current_roi);
+            //printf("END--");
+            current_hist=generate_histograme(&current_matrix);
+            current_score=get_score_histogramme(roi_hist, &current_hist);
+
+        }
+        printf("Minimum %f, Current Score %f, x %d\n", min, current_score, x);
+
+        // Trouver le max
+        if (current_score < min) {
+            //printf(" Score %f  min %f \n", current_score, min);
+            min =  current_score;
+            coor.x = (double)x;
+            printf("Dans if x %f \n", coor.x );
+        }
+    }
+
+    //Initialisation
+    min = 1.0;
+
+//   Bhattacharya distance on y shifts
+    for (int y = -OPT; y < OPT; y++) {
+
+        //On parcourt l'imagette roi
+        if ( (y+roi_y+rows_roi< rows) && (y+roi_y>0)  ){
+            // printf("BEGIN GET MATRIX ROI");
+            Rect current_roi(roi_x, y+roi_y, cols_roi,rows_roi);
+            current_matrix=get_matrix_roi (frame, &current_roi);
+            // printf("END GET MATRIX ROI");
+
+
+            current_hist=generate_histograme(&current_matrix);
+            current_score=get_score_histogramme(roi_hist, &current_hist);
+        }
+
+        //printf("END-target frame\n");
+
+        // Trouver le max
+        if (current_score < min) {
+            min =  current_score;
+            coor.y = (double)y;
+            printf("Dans if y %f \n", coor.y );
+        }
+    }
+    printf("Coordonnées envoyées  x %f Coordonées y %f\n", coor.x, coor.y);
+    return coor;
+
+
+}
+
+
+/**
+ * Fonction qui met à jour le roi
+ */
+void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
+
+    Coordinates coor= get_distance_bhattacharyya (frame, roi, roi_hist);
+
+    printf("Coordonées Reçues X %f,  Y %f\n", coor.x, coor.y);
+
+    //update roi
+    (*roi) += Point(coor.x, coor.y);
+
+}
+
+
+/**
+ * Fonction qui séélctionne le roi mannuellement
+ */
+
+
+int track_roi_manually(){
+
+    //Capture
+    VideoCapture cap(0);
+    if (!cap.isOpened()) {
+        printf("Error\n");
+        return -1;
+    }
+
+    Mat frame;
+    cap >> frame;
+
+    // select a bounding box
+    Rect roi = selectROI(frame);
+
+    //get histogram of
+    // printf("BEGIN-- GET HIST ROI\n");
+    Mat roi_matrix=get_matrix_roi(&frame, &roi);
+    MatND roi_hist=generate_histograme(&roi_matrix);
+    // printf("FIN-- GET HIST ROI");
+
+
+
+
+
+//quit if ROI was not selected
+    if (roi.width == 0 || roi.height == 0)
+        return 0;
+
+
+    for (;;) {
+
+        cap >> frame;
+
+        //update l'image reférente
+
+        // get_interest_zone(&frame, &roi, &new_roi);
+        //update_imagette (&image_interest, &new_roi);
+        update_roi_hist(&frame, &roi, &roi_hist);
+
+        // draw the tracked object
+        rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
+        //show image with the tracked object
+        imshow("Tracker", frame);
+        //quit on ESC button
+        if (waitKey(1) == 27) break;
+    }
+
+
+
+
+}
+/**
+ * Fonction qui track sur une video
+ *
+ */
+
+int track_roi_manually_video(String file){
+
+    //Capture
+
+    //VideoCapture video("video.MOV");
+    VideoCapture video(file);
+    //VideoCapture video("voiture-rouge.MOV");
+    //VideoCapture video("occultation1-1.mov");
+
+// Exit if video is not opened
+    if (!video.isOpened()) {
+        cerr << "Could not read video file" << endl;
+        return 1;
+    }
+
+    Mat frame;
+    bool ok = video.read(frame);
+    if (!ok) {
+        cerr << "Could not read the first frame" << endl;
+        return 1;
+    }
+
+    // select a bounding box
+    Rect roi = selectROI(frame);
+
+//quit if ROI was not selected
+    if (roi.width == 0 || roi.height == 0)
+        return 0;
+
+    //get histogram of
+    // printf("BEGIN-- GET HIST ROI\n");
+    Mat roi_matrix=get_matrix_roi(&frame, &roi);
+    MatND roi_hist=generate_histograme(&roi_matrix);
+    // printf("FIN-- GET HIST ROI");
+
+    while (video.read(frame)) {
+
+        //cout << "DEBUG 1 " << nb_frame <<  endl;
+        //start tracking
+        //update_roi(&frame, &image_interest, &roi);
+        update_roi_hist(&frame, &roi, &roi_hist);
+
+        //update l'image reférente
+        // get_interest_zone(&frame, &roi, &new_roi);
+        //update_imagette (&image_interest, &new_roi);
+
+        // draw the tracked object
+        rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
+
+        //show image with the tracked object
+        imshow("Tracker", frame);
+        //quit on ESC button
+        if (waitKey(1) == 27) break;
+    }
+
+
 }
 
 /*
