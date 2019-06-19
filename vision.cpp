@@ -643,7 +643,7 @@ Coordinates get_distance_bhattacharyya (Mat *frame, Rect *roi, MatND *roi_hist) 
         if (current_score < min) {
             min =  current_score;
             coor.y = (double)y;
-            printf("Dans if y %f \n", coor.y );
+            //printf("Dans if y %f \n", coor.y );
         }
     }
     //printf("Coordonnées envoyées  x %f Coordonées y %f\n", coor.x, coor.y);
