@@ -788,6 +788,93 @@ void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
 
 }*/
 
+/**
+ * Fonction qui track manuellement à partir d'une video
+ * @param frame
+ * @param image_target
+ * @return
+ */
+int track_video_manually(String file ) {
+
+    int nb_frame=0;
+    double fps;
+
+
+//VIDEO
+    VideoCapture video("miseajour-rotation3.mov");
+
+    // Exit if video is not opened
+    if (!video.isOpened()) {
+        cerr << "Could not read video file" << endl;
+        return 1;
+    }
+
+    // Read first frame
+    Mat frame;
+    bool ok = video.read(frame);
+    if (!ok) {
+        cerr << "Could not read the first frame" << endl;
+        return 1;
+    }
+
+//quit if ROI was not selected
+   // if (roi.width == 0 || roi.height == 0)
+   //     return 0;
+
+    //selection for miseajour-rotation3
+    Rect roi(79, 107, 155,56);
+    //waitKey(0);
+
+
+    //affichage des coordonnées du roi
+    //cout << " Cordonnée" << "roix"<< roi.x << "roiy"<< roi.y << "roiheight"<< roi.height << "roi widht"<< roi.width << endl;
+
+    // get interest zone
+    struct img image_interest = img_allocation(roi.y + roi.height, roi.x + roi.width);
+    struct img new_roi = img_allocation(roi.y + roi.height, roi.x + roi.width);
+    get_interest_zone(&frame, &roi, &image_interest);
+
+    cout << "Alpha  " << ALPHA << endl;
+
+    while (video.read(frame)) {
+
+        nb_frame++;
+
+        //cout << "DEBUG 1 " << nb_frame <<  endl;
+        //milliseconds start = getTime();
+        //start tracking
+        cout << "Frame number " << nb_frame << endl;
+        milliseconds start = getTime();
+        update_roi(&frame, &image_interest, &roi);
+
+
+
+
+        //mettre à jour l'image cible
+        get_interest_zone(&frame, &roi, &new_roi);
+        update_imagette (&image_interest, &new_roi);
+
+        fps=(getTime() - start).count();
+        fps=1/fps*1000;
+        cout  << "FPS " << fps <<  endl;
+
+
+        // draw the tracked object
+        rectangle(frame, roi, Scalar(255, 0, 0), 2, 1);
+        //show image with the tracked object
+        imshow("Tracker", frame);
+        //quit on ESC button
+        if (waitKey(1) == 27) break;
+    }
+    return 0;
+
+
+
+
+}
+
+
+
 /*
  *
  */
