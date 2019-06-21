@@ -794,7 +794,7 @@ void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
  * @param image_target
  * @return
  */
-/* {
+int track_video_manually(String file ) {
 
     int nb_frame=0;
     double fps;
@@ -844,7 +844,7 @@ void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
         //milliseconds start = getTime();
         //start tracking
         cout << "Frame number " << nb_frame << endl;
-        milliseconds start = getTime();
+        //milliseconds start = getTime();
         update_roi(&frame, &image_interest, &roi);
 
 
@@ -854,9 +854,9 @@ void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
         get_interest_zone(&frame, &roi, &new_roi);
         update_imagette (&image_interest, &new_roi);
 
-        fps=(getTime() - start).count();
-        fps=1/fps*1000;
-        cout  << "FPS " << fps <<  endl;
+        //fps=(getTime() - start).count();
+        //fps=1/fps*1000;
+        //cout  << "FPS " << fps <<  endl;
 
 
         // draw the tracked object
@@ -871,7 +871,7 @@ void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
 
 
 
-}*/
+}
 
 
 

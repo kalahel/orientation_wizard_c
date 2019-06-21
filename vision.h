@@ -68,6 +68,6 @@ Coordinates detect_hist_scaled(Mat *frame, Mat *image_target);
 int track_target_hist(String file);
 void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist);
 int track_video_manually(String file );
-
+Coordinates get_distance_bhattacharyya (Mat *frame, Rect *roi, MatND *roi_hist);
 
 #endif //SMARTDRONEGIT_VISION_H
