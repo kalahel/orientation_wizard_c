@@ -794,7 +794,7 @@ void update_roi_hist(Mat *frame, Rect *roi, MatND *roi_hist){
  * @param image_target
  * @return
  */
-int track_video_manually(String file ) {
+/* {
 
     int nb_frame=0;
     double fps;
@@ -871,7 +871,7 @@ int track_video_manually(String file ) {
 
 
 
-}
+}*/
 
 
 
